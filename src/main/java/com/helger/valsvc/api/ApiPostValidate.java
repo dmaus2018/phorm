@@ -52,6 +52,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
                          @Nonnull final IRequestWebScopeWithoutResponse aRequestScope,
                          @Nonnull final PhotonUnifiedResponse aUnifiedResponse) throws IOException
   {
+    aUnifiedResponse.disableCaching ();
     final String sLogPrefix = "[VALIDATE-" + AppVersion.getVersionNumber () + "-" + COUNTER.incrementAndGet () + "] ";
 
     // Security check
@@ -78,7 +79,12 @@ public class ApiPostValidate extends AbstractAPIInvoker
       LOGGER.info (sLogPrefix + "Trying to read payload as XML");
     final Document aDoc = DOMReader.readXMLDOM (aRequestScope.getRequest ().getInputStream ());
     if (aDoc == null || aDoc.getDocumentElement () == null)
-      throw new IllegalArgumentException (sLogPrefix + "Failed to read the message body as XML");
+    {
+      if (LOGGER.isErrorEnabled ())
+        LOGGER.error (sLogPrefix + "Failed to read the message body as XML");
+      aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+      return;
+    }
 
     final String sVESID = aPathVariables.get ("vesid");
     final VESID aVESID = VESID.parseIDOrNull (sVESID);

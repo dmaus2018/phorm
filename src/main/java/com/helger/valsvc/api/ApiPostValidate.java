@@ -83,9 +83,19 @@ public class ApiPostValidate extends AbstractAPIInvoker
     final String sVESID = aPathVariables.get ("vesid");
     final VESID aVESID = VESID.parseIDOrNull (sVESID);
     if (aVESID == null)
-      throw new IllegalArgumentException ("The VESID '" + sVESID + "' could not be parsed.");
+    {
+      if (LOGGER.isErrorEnabled ())
+        LOGGER.error (sLogPrefix + "The VESID '" + sVESID + "' could not be parsed.");
+      aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+      return;
+    }
     if (AppValidator.getVES (aVESID) == null)
-      throw new IllegalArgumentException ("The VESID '" + sVESID + "' could not be resolved.");
+    {
+      if (LOGGER.isErrorEnabled ())
+        LOGGER.error (sLogPrefix + "The VESID '" + sVESID + "' could not be resolved.");
+      aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+      return;
+    }
 
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
     final IJsonObject aJson = new JsonObject ();

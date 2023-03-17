@@ -21,7 +21,7 @@ RUN unzip valsvc.war -d /valsvc \
 
 # Stage 2
 
-FROM tomcat:9-jdk11
+FROM tomcat:10.1-jdk11
 
 ENV CATALINS_OPTS="$CATALINA_OPTS -Djava.security.egd=file:/dev/urandom"
 

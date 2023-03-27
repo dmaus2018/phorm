@@ -8,7 +8,7 @@ The services offers the following APIs.
 
 * POST **`/api/validate/{vesid}`**
   * Validate the provided payload in the body against the validation rules, identified by `{vesid}`
-  * Requires the HTTP header `X-Token` to have the value `zYMx3OQQ8Ue8MyQzRW5A` (see `AbstractAPIInvoker`) (don't share this)
+  * Requires the HTTP header `X-Token` to have the value `4cKyX6OKBs80nWPyOamn` (see `AbstractAPIInvoker`) (don't share this)
   * The result is a JSON structure
 * GET **`/api/get/vesids`**
   * Get a list of all registered VESIDs

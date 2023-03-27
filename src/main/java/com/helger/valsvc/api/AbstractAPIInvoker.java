@@ -31,7 +31,7 @@ public abstract class AbstractAPIInvoker implements IAPIExecutor
 {
   private static final Logger LOGGER = LoggerFactory.getLogger (AbstractAPIInvoker.class);
 
-  public static final String REQUIRED_TOKEN = "zYMx3OQQ8Ue8MyQzRW5A";
+  public static final String REQUIRED_TOKEN = "4cKyX6OKBs80nWPyOamn";
 
   public abstract void invokeAPI (@Nonnull final IAPIDescriptor aAPIDescriptor,
                                   @Nonnull @Nonempty final String sPath,

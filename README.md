@@ -8,7 +8,7 @@ The services offers the following APIs.
 
 * POST **`/api/validate/{vesid}`**
   * Validate the provided payload in the body against the validation rules, identified by `{vesid}`
-  * Requires the HTTP header `X-Token` to have the value `4cKyX6OKBs80nWPyOamn` (see `AbstractAPIInvoker`) (don't share this)
+  * Requires the HTTP header `X-Token` to have the configured value (see below for `valsvc.api.requiredtoken`)
   * The result is a JSON structure
 * GET **`/api/get/vesids`**
   * Get a list of all registered VESIDs
@@ -27,6 +27,7 @@ It supports the following settings:
 * **`webapp.checkfileaccess`**: a flag that determines whether the directory of the web application should be checked for read and write access. This is only required if the data path inside the web application and should therefore always be `false`.
 * **`webapp.testversion`**: a special indicator for the web application whether the version should be highlighted as a "test" version. Set to `true` in debug mode and `false` in production mode.
 * **`valsvc.statusapi.enabled`**: a flag that indicates, if the status API (`/status`) should deliver data or not.
+* **`valsvc.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it.
 
 # Building
 

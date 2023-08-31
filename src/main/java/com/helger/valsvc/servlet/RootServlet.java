@@ -59,7 +59,7 @@ public class RootServlet extends AbstractXServlet
           {
             final VESID aVESID = x.getID ();
             final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
-            final boolean bIsLatest = aVESID.getVersion ().equals (sLatestVersion);
+            final boolean bIsLatest = aVESID.getVersionString ().equals (sLatestVersion);
 
             aUL.addAndReturnItem (code (aVESID.getAsSingleID ()))
                .addChild (" - " + x.getDisplayName ())
@@ -70,9 +70,8 @@ public class RootServlet extends AbstractXServlet
           h.body ()
            .addChild (div (a (new SimpleURL (aRequestScope.getURIDecoded ()).add (PARAM_INCLUDE_DEPRECATED)).addChild ("Show below list including duplicates")));
         h.body ()
-         .addChild (div ("Supported VESIDs are" +
-                         (bIncludeDeprecated ? " (including deprecated)" : "") +
-                         ":").addChild (aUL));
+         .addChild (div ("Supported VESIDs are" + (bIncludeDeprecated ? " (including deprecated)" : "") + ":")
+                                                                                                              .addChild (aUL));
       }
       PhotonHTMLHelper.createHTMLResponse (aRequestScope, aUnifiedResponse, x -> h);
     }

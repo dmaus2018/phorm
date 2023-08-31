@@ -62,7 +62,7 @@ public class AppValidator
     final IValidationExecutorSet <IValidationSourceXML> aLatest = VER.getLatestVersion (aVESID.getGroupID (),
                                                                                         aVESID.getArtifactID (),
                                                                                         null);
-    return aLatest == null ? null : aLatest.getID ().getVersion ();
+    return aLatest == null ? null : aLatest.getID ().getVersionString ();
   }
 
   @Nonnull

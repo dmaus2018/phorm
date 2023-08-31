@@ -80,7 +80,7 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
         {
           final VESID aVESID = aEntry.getID ();
           final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
-          final boolean bIsLatest = aVESID.getVersion ().equals (sLatestVersion);
+          final boolean bIsLatest = aVESID.getVersionString ().equals (sLatestVersion);
 
           aJsonIDs.add (new JsonObject ().add ("vesid", aVESID.getAsSingleID ())
                                          .add ("deprecated", aEntry.isDeprecated ())

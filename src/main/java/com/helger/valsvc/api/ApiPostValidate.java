@@ -26,7 +26,7 @@ import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.phive.api.executorset.VESID;
 import com.helger.phive.api.result.ValidationResultList;
-import com.helger.phive.json.PhiveJsonHelper;
+import com.helger.phive.result.json.PhiveJsonHelper;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.valsvc.AppConfig;

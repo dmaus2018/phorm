@@ -14,7 +14,7 @@ import com.helger.html.hc.html.root.HCHtml;
 import com.helger.html.hc.html.traits.IHCTrait;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.executorset.VESID;
-import com.helger.phive.engine.source.IValidationSourceXML;
+import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.photon.app.html.PhotonHTMLHelper;
 import com.helger.servlet.response.UnifiedResponse;
 import com.helger.valsvc.AppConfig;

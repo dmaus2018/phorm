@@ -15,7 +15,7 @@ import com.helger.commons.callback.IThrowingRunnable;
 import com.helger.commons.datetime.PDTFactory;
 import com.helger.commons.timing.StopWatch;
 import com.helger.json.IJsonObject;
-import com.helger.phive.json.PhiveJsonHelper;
+import com.helger.phive.result.json.PhiveJsonHelper;
 
 @Immutable
 public final class CommonAPIInvoker

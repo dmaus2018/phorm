@@ -9,12 +9,12 @@ import javax.annotation.Nonnull;
 
 import com.helger.commons.http.EHttpMethod;
 import com.helger.commons.url.SimpleURL;
+import com.helger.diver.api.version.VESID;
 import com.helger.html.hc.html.grouping.HCUL;
 import com.helger.html.hc.html.root.HCHtml;
 import com.helger.html.hc.html.traits.IHCTrait;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
-import com.helger.phive.api.executorset.VESID;
-import com.helger.phive.engine.source.IValidationSourceXML;
+import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.photon.app.html.PhotonHTMLHelper;
 import com.helger.servlet.response.UnifiedResponse;
 import com.helger.valsvc.AppConfig;
@@ -59,7 +59,7 @@ public class RootServlet extends AbstractXServlet
           {
             final VESID aVESID = x.getID ();
             final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
-            final boolean bIsLatest = aVESID.getVersion ().equals (sLatestVersion);
+            final boolean bIsLatest = aVESID.getVersionString ().equals (sLatestVersion);
 
             aUL.addAndReturnItem (code (aVESID.getAsSingleID ()))
                .addChild (" - " + x.getDisplayName ())
@@ -70,9 +70,8 @@ public class RootServlet extends AbstractXServlet
           h.body ()
            .addChild (div (a (new SimpleURL (aRequestScope.getURIDecoded ()).add (PARAM_INCLUDE_DEPRECATED)).addChild ("Show below list including duplicates")));
         h.body ()
-         .addChild (div ("Supported VESIDs are" +
-                         (bIncludeDeprecated ? " (including deprecated)" : "") +
-                         ":").addChild (aUL));
+         .addChild (div ("Supported VESIDs are" + (bIncludeDeprecated ? " (including deprecated)" : "") + ":")
+                                                                                                              .addChild (aUL));
       }
       PhotonHTMLHelper.createHTMLResponse (aRequestScope, aUnifiedResponse, x -> h);
     }

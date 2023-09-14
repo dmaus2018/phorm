@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.helger.commons.annotation.Nonempty;
 import com.helger.commons.http.CHttp;
 import com.helger.commons.string.StringHelper;
+import com.helger.diver.api.version.VESID;
 import com.helger.json.IJsonArray;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonArray;
@@ -23,8 +24,7 @@ import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
-import com.helger.phive.api.executorset.VESID;
-import com.helger.phive.engine.source.IValidationSourceXML;
+import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.valsvc.AppConfig;
@@ -80,7 +80,7 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
         {
           final VESID aVESID = aEntry.getID ();
           final String sLatestVersion = AppValidator.getLatestVersion (aVESID);
-          final boolean bIsLatest = aVESID.getVersion ().equals (sLatestVersion);
+          final boolean bIsLatest = aVESID.getVersionString ().equals (sLatestVersion);
 
           aJsonIDs.add (new JsonObject ().add ("vesid", aVESID.getAsSingleID ())
                                          .add ("deprecated", aEntry.isDeprecated ())

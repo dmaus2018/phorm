@@ -36,6 +36,16 @@ It supports the following settings:
 * Requires Java 11 or higher
 * Build with Apache Maven 3.x - via `mvn clean install`
 
+* Alternatively build with a Docker Maven image:
+
+```
+build-with-docker.cmd clean install
+```
+or
+```
+./build-with-docker.sh clean install
+```
+
 ## Docker image
 
 Building:

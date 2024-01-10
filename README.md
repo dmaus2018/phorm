@@ -59,3 +59,7 @@ Running:
 ```shell
 docker run -d --name valsvc -p 8080:8080 phelger/valsvc
 ```
+
+# News and noteworthy
+
+2024-01-10 - add XRechnung rules as well

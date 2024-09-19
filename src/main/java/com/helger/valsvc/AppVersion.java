@@ -5,15 +5,13 @@
  */
 package com.helger.valsvc;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 
 import com.helger.commons.exception.InitializationException;
 import com.helger.commons.io.resource.ClassPathResource;
 import com.helger.commons.lang.NonBlockingProperties;
+import com.helger.commons.lang.PropertiesHelper;
 
 /**
  * Validation Service version number
@@ -31,18 +29,15 @@ public final class AppVersion
   static
   {
     // Read version number
-    final NonBlockingProperties aVersionProps = new NonBlockingProperties ();
-    try
-    {
-      aVersionProps.load (ClassPathResource.getInputStream (VALSVC_VERSION_FILENAME));
-    }
-    catch (final IOException ex)
-    {
-      throw new UncheckedIOException (ex);
-    }
+    final NonBlockingProperties aVersionProps = PropertiesHelper.loadProperties (ClassPathResource.getInputStream (VALSVC_VERSION_FILENAME,
+                                                                                                                   AppVersion.class.getClassLoader ()));
+    if (aVersionProps == null)
+      throw new InitializationException ("Failed to read Validation Service version properties");
+
     VERSION_NUMBER = aVersionProps.get ("version");
     if (VERSION_NUMBER == null)
       throw new InitializationException ("Error determining Validation Service version number!");
+
     TIMESTAMP = aVersionProps.get ("timestamp");
     if (TIMESTAMP == null)
       throw new InitializationException ("Error determining Validation Service build timestamp!");

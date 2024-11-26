@@ -2,6 +2,14 @@
 
 This repository contains a simple, standalone Validation Service accessible by API only.
 
+The implementation of the validation is based on the open source validation engine [phive](https://github.com/phax/phive) and the collection of rules [phive-rules](https://github.com/phax/phive-rules).
+
+# Development environment
+
+* Requires Java 11 or newer
+* [Apache Maven](https://maven.apache.org) is used as the build tool. May be abstracted by a Docker image.
+* Coding language: English
+
 # API
 
 The services offers the following APIs.

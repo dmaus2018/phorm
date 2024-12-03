@@ -77,6 +77,24 @@ Example curl command (use the right token and the right address):
 curl -d "@base-example.xml" -H "Content-Type: application/xml" -H "X-Token: XXX" -X POST http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest
 ```
 
+# Validation Service Updates
+
+If an update is made to the validation, you have to do a `git pull` and recompile.
+
+To make sure your own configuration is kept unchanged, my suggestion is to create a file `private-application.properties` 
+  in the `src/main/resources` folder of your checked-out copy (same folder as `application.properties`), 
+  where you can adjust or change all the configuration entries that are important to you.
+
+The file with this specific name and within this folder has a higher priority than the default 
+  `application.properties` file and is also marked as "ignored" in git, i.e. changes to this file
+  are not overwritten during updates from the repository.
+If the file is in the correct folder, it will also be included in the compilation process and 
+  is therefore available out of the box for the validation service.
+
+As an alternative to using `private-application.properties` you may also consider using
+   environment variables or Java system properties for the configuration - 
+   see https://github.com/phax/ph-commons/wiki/ph-config for details.
+
 # News and noteworthy
 
 2024-12-03 - the new configuration property "valsvc.api.response.onfailure.http400" can be used to disable returning HTTP 400 on validation failure

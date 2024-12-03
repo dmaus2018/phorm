@@ -64,6 +64,11 @@ public final class AppConfig
     return getConfig ().getAsString ("valsvc.api.requiredtoken");
   }
 
+  public static boolean isUseHttp400OnValidationFailure ()
+  {
+    return getConfig ().getAsBoolean ("valsvc.api.response.onfailure.http400", true);
+  }
+
   public static boolean isStatusAPIEnabled ()
   {
     return getConfig ().getAsBoolean ("valsvc.statusapi.enabled", true);

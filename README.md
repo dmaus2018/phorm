@@ -39,6 +39,7 @@ It supports the following settings:
 * **`webapp.testversion`**: a special indicator for the web application whether the version should be highlighted as a "test" version. Set to `true` in debug mode and `false` in production mode.
 * **`valsvc.statusapi.enabled`**: a flag that indicates, if the status API (`/status`) should deliver data or not.
 * **`valsvc.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it.
+* **`valsvc.api.response.onfailure.http400`**: a flag to indicate, whether the API should return HTTP 400 (Bad Request) on failed validations or not. The default is `true` for backwards compatibility reasons.
 
 # Building
 
@@ -78,6 +79,7 @@ curl -d "@base-example.xml" -H "Content-Type: application/xml" -H "X-Token: XXX"
 
 # News and noteworthy
 
+2024-12-03 - the new configuration property "valsvc.api.response.onfailure.http400" can be used to disable returning HTTP 400 on validation failure
 2024-09-17 - updated to phive v10 and ph-diver v3
 2024-05-23 - added UBL.BE rules as well 
 2024-01-10 - added XRechnung rules as well

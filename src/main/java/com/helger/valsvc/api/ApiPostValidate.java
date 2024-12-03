@@ -135,8 +135,11 @@ public class ApiPostValidate extends AbstractAPIInvoker
 
       if (!bOverallSuccess)
       {
-        // Return error status
-        aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+        if (AppConfig.isUseHttp400OnValidationFailure ())
+        {
+          // Return error status
+          aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
+        }
       }
     });
 

@@ -69,6 +69,11 @@ public final class AppConfig
     return getConfig ().getAsBoolean ("valsvc.api.response.onfailure.http400", true);
   }
 
+  public static boolean isLogResponsePayload ()
+  {
+    return getConfig ().getAsBoolean ("valsvc.api.response.log.payload", true);
+  }
+
   public static boolean isStatusAPIEnabled ()
   {
     return getConfig ().getAsBoolean ("valsvc.statusapi.enabled", true);

@@ -26,6 +26,7 @@ import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.phive.api.result.ValidationResultList;
+import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.json.PhiveJsonHelper;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
@@ -118,19 +119,21 @@ public class ApiPostValidate extends AbstractAPIInvoker
         aSW.stop ();
 
         // Convert to JSON
-        PhiveJsonHelper.applyValidationResultList (aJson,
-                                                   AppValidator.getVES (aVESID),
-                                                   aValidationResultList,
-                                                   aDisplayLocale,
-                                                   aSW.getMillis (),
-                                                   null,
-                                                   null);
+        // Don't emit validation source content
+        final boolean bEmitValidationSourceContent = false;
+        new JsonValidationResultListHelper ().ves (AppValidator.getVES (aVESID))
+                                             .sourceToJson (vs -> PhiveJsonHelper.getJsonValidationSource (vs,
+                                                                                                           bEmitValidationSourceContent))
+                                             .applyTo (aJson, aValidationResultList, aDisplayLocale, aSW.getMillis ());
 
         bOverallSuccess = aValidationResultList.containsNoError ();
         if (bOverallSuccess)
-          LOGGER.info (sLogPrefix + "Validation was performed and no errors were found");
+          LOGGER.info (sLogPrefix + "Validation was performed and no errors were found (" + aSW.getMillis () + " ms)");
         else
-          LOGGER.error (sLogPrefix + "Don't send out the document because it contains validation errors");
+          LOGGER.error (sLogPrefix +
+                        "Don't send out the document because it contains validation errors (" +
+                        aSW.getMillis () +
+                        " ms)");
       }
 
       if (!bOverallSuccess)
@@ -143,9 +146,12 @@ public class ApiPostValidate extends AbstractAPIInvoker
       }
     });
 
-    LOGGER.info (sLogPrefix +
-                 "Response JSON is:\n" +
-                 new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    if (AppConfig.isLogResponsePayload ())
+    {
+      LOGGER.info (sLogPrefix +
+                   "Response JSON is:\n" +
+                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    }
 
     aUnifiedResponse.json (aJson);
   }

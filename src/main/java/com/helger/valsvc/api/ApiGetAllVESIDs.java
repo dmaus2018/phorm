@@ -91,9 +91,12 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
       aJson.addJson ("vesids", aJsonIDs);
     });
 
-    LOGGER.info (sLogPrefix +
-                 "Response JSON is:\n" +
-                 new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    if (AppConfig.isLogResponsePayload ())
+    {
+      LOGGER.info (sLogPrefix +
+                   "Response JSON is:\n" +
+                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+    }
 
     aUnifiedResponse.json (aJson);
   }

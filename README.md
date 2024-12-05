@@ -4,6 +4,9 @@ This repository contains a simple, standalone Validation Service accessible by A
 
 The implementation of the validation is based on the open source validation engine [phive](https://github.com/phax/phive) and the collection of rules [phive-rules](https://github.com/phax/phive-rules).
 
+This validation service does not provide all validation rules out of the box, to save memory.
+  If you need additional rules, that are already available in phive-rules, just create an issue or write an email.
+
 # Development environment
 
 * Requires Java 11 or newer
@@ -40,6 +43,7 @@ It supports the following settings:
 * **`valsvc.statusapi.enabled`**: a flag that indicates, if the status API (`/status`) should deliver data or not.
 * **`valsvc.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it.
 * **`valsvc.api.response.onfailure.http400`**: a flag to indicate, whether the API should return HTTP 400 (Bad Request) on failed validations or not. The default is `true` for backwards compatibility reasons.
+* **`valsvc.api.response.log.payload`**: a flag to indicate, whether the validation response should be logged in the console or not. The default is `true` for backwards compatibility reasons.
 
 # Building
 
@@ -97,7 +101,14 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-2024-12-03 - the new configuration property "valsvc.api.response.onfailure.http400" can be used to disable returning HTTP 400 on validation failure
-2024-09-17 - updated to phive v10 and ph-diver v3
-2024-05-23 - added UBL.BE rules as well 
-2024-01-10 - added XRechnung rules as well
+* 2024-12-05
+    * the new configuration property `valsvc.api.response.log.payload` can be used to disable logging of the result JSON
+    * Added support for German ZuGFERD XML invoices 
+* 2024-12-03 
+    * the new configuration property `valsvc.api.response.onfailure.http400` can be used to disable returning HTTP 400 on validation failure
+* 2024-09-17 
+    * updated to phive v10 and ph-diver v3
+* 2024-05-23 
+    * added UBL.BE rules as well 
+* 2024-01-10 
+    * added XRechnung rules as well

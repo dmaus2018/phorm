@@ -29,6 +29,7 @@ import com.helger.phive.ublbe.UBLBEValidation;
 import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phive.xrechnung.XRechnungValidation;
+import com.helger.phive.zugferd.ZugferdValidation;
 
 /**
  * Default validation repository
@@ -47,6 +48,7 @@ public class AppValidator
     SimplerInvoicingValidation.initSimplerInvoicing (VER);
     UBLBEValidation.initUBLBE (VER);
     XRechnungValidation.initXRechnung (VER);
+    ZugferdValidation.initZugferd (VER);
   }
 
   @Nonnull

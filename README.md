@@ -21,13 +21,39 @@ The services offers the following APIs.
   * Validate the provided payload in the body against the validation rules, identified by `{vesid}`
   * Requires the HTTP header `X-Token` to have the configured value (see below for `valsvc.api.requiredtoken`)
   * The result is a JSON structure
-  * Test invocation:
+  * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/validate/eu.peppol.bis3:invoice:latest`
 * GET **`/api/get/vesids`**
   * Get a list of all registered VESIDs
   * The optional URL parameter `include-deprecated` can be used to also return registered, but deprecated VES IDs. No parameter value is needed
   * The result is a JSON structure
     * `curl -X GET http://localhost:8080/api/get/vesids`
+* POST **`/api/determinedoctype`**
+  * Try to detect the format and payload specifics of a document instance.
+  * The document instance must be the POST payload.
+  * Requires the HTTP header `X-Token` to have the configured value (see below for `valsvc.api.requiredtoken`)
+  * The result is a JSON structure
+  * Test invocation (replace `XXX` with real token):
+    * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/determinedoctype`
+  * Example output:
+```json
+{
+  "syntaxID":"ubl2-invoice",
+  "syntaxVersion":"2.1",
+  "sender":"iso6523-actorid-upis::0088:9482348239847239874",
+  "receiver":"iso6523-actorid-upis::0002:FR23342",
+  "doctype":"busdox-docid-qns::urn:oasis:names:specification:ubl:schema:xsd:Invoice-2::Invoice##urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0::2.1",
+  "process":"cenbii-procid-ubl::urn:fdc:peppol.eu:2017:poacc:billing:01:1.0",
+  "customizationID":"urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0",
+  "bdid":"Snippet1",
+  "senderName":"SupplierTradingName Ltd.",
+  "senderCountryCode":"GB",
+  "receiverName":"BuyerTradingName AS",
+  "receiverCountryCode":"SE",
+  "vesid":"eu.peppol.bis3:invoice:latest-active",
+  "profileName":"Peppol BIS Billing UBL Invoice V3"
+}
+```
 
 # Configuration
 
@@ -101,6 +127,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2024-12-06
+    * Added new API `/api/determinedoctype` to auto detect payload details
 * 2024-12-05
     * the new configuration property `valsvc.api.response.log.payload` can be used to disable logging of the result JSON
     * Added support for German ZuGFERD XML invoices 

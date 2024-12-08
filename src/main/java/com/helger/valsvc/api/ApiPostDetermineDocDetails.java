@@ -79,7 +79,7 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
     if (aDDO == null)
     {
       LOGGER.error (sLogPrefix + "Failed to determine the document types");
-      aUnifiedResponse.createNotFound ();
+      aUnifiedResponse.createNoContent ();
       return;
     }
 

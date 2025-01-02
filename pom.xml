@@ -35,7 +35,7 @@
   </developers>
   
   <properties>
-    <log4j.version>2.24.2</log4j.version>
+    <log4j.version>2.24.3</log4j.version>
   </properties>
   
   <dependencyManagement>
@@ -78,7 +78,7 @@
       <dependency>
         <groupId>com.helger.schematron</groupId>
         <artifactId>ph-schematron-parent-pom</artifactId>
-        <version>8.0.4</version>
+        <version>8.0.5</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -107,7 +107,7 @@
       <dependency>
         <groupId>com.helger</groupId>
         <artifactId>ddd</artifactId>
-        <version>0.4.2</version>
+        <version>0.4.3</version>
       </dependency>
 
       <dependency>

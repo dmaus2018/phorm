@@ -17,10 +17,13 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.helger.commons.annotation.Nonempty;
+import com.helger.commons.callback.IThrowingRunnable;
 import com.helger.commons.http.CHttp;
+import com.helger.commons.mime.CMimeType;
 import com.helger.commons.string.StringHelper;
 import com.helger.commons.timing.StopWatch;
 import com.helger.diver.api.coord.DVRCoordinate;
+import com.helger.http.AcceptMimeTypeList;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
@@ -28,14 +31,23 @@ import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.json.PhiveJsonHelper;
+import com.helger.phive.result.xml.PhiveXMLHelper;
+import com.helger.phive.result.xml.XMLValidationResultListHelper;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.servlet.request.RequestHelper;
 import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.AppVersion;
 import com.helger.valsvc.CApp;
 import com.helger.valsvc.validation.AppValidator;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
+import com.helger.xml.microdom.IMicroDocument;
+import com.helger.xml.microdom.IMicroElement;
+import com.helger.xml.microdom.MicroDocument;
+import com.helger.xml.microdom.serialize.MicroWriter;
 import com.helger.xml.serialize.read.DOMReader;
+import com.helger.xml.serialize.write.EXMLSerializeIndent;
+import com.helger.xml.serialize.write.XMLWriterSettings;
 
 /**
  * Perform validation only via API
@@ -104,9 +116,11 @@ public class ApiPostValidate extends AbstractAPIInvoker
     }
 
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
-    final IJsonObject aJson = new JsonObject ();
+    final IJsonObject aResultJson = new JsonObject ();
+    final IMicroDocument aResultXML = new MicroDocument ();
+    final IMicroElement aResultXMLRoot = aResultXML.appendElement ("validationResults");
 
-    CommonAPIInvoker.invoke (aJson, () -> {
+    final IThrowingRunnable <Exception> aRunnable = () -> {
       final boolean bOverallSuccess;
       {
         // validation
@@ -118,13 +132,24 @@ public class ApiPostValidate extends AbstractAPIInvoker
         final ValidationResultList aValidationResultList = AppValidator.validate (aVESID, aDoc, aDisplayLocale);
         aSW.stop ();
 
-        // Convert to JSON
+        // Convert to JSON/XML
         // Don't emit validation source content
         final boolean bEmitValidationSourceContent = false;
         new JsonValidationResultListHelper ().ves (AppValidator.getVES (aVESID))
                                              .sourceToJson (vs -> PhiveJsonHelper.getJsonValidationSource (vs,
                                                                                                            bEmitValidationSourceContent))
-                                             .applyTo (aJson, aValidationResultList, aDisplayLocale, aSW.getMillis ());
+                                             .applyTo (aResultJson,
+                                                       aValidationResultList,
+                                                       aDisplayLocale,
+                                                       aSW.getMillis ());
+        new XMLValidationResultListHelper ().ves (AppValidator.getVES (aVESID))
+                                            .sourceToXML (vs -> PhiveXMLHelper.getXMLValidationSource (vs,
+                                                                                                       bEmitValidationSourceContent,
+                                                                                                       PhiveXMLHelper.XML_VALIDATION_SOURCE))
+                                            .applyTo (aResultXMLRoot,
+                                                      aValidationResultList,
+                                                      aDisplayLocale,
+                                                      aSW.getMillis ());
 
         bOverallSuccess = aValidationResultList.containsNoError ();
         if (bOverallSuccess)
@@ -144,15 +169,33 @@ public class ApiPostValidate extends AbstractAPIInvoker
           aUnifiedResponse.setStatus (CHttp.HTTP_BAD_REQUEST);
         }
       }
-    });
+    };
 
-    if (AppConfig.isLogResponsePayload ())
+    final AcceptMimeTypeList aAcceptMimeTypes = RequestHelper.getAcceptMimeTypes (aRequestScope.getRequest ());
+    if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.APPLICATION_XML))
     {
-      LOGGER.info (sLogPrefix +
-                   "Response JSON is:\n" +
-                   new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aJson));
+      // Provide response as XML
+      CommonAPIInvoker.invoke (aResultXMLRoot, aRunnable);
+      if (AppConfig.isLogResponsePayload ())
+      {
+        LOGGER.info (sLogPrefix +
+                     "Response XML is:\n" +
+                     MicroWriter.getNodeAsString (aResultXML,
+                                                  new XMLWriterSettings ().setIndent (EXMLSerializeIndent.INDENT_AND_ALIGN)));
+      }
+      aUnifiedResponse.xml (aResultXML);
     }
-
-    aUnifiedResponse.json (aJson);
+    else
+    {
+      // Provide response as JSON
+      CommonAPIInvoker.invoke (aResultJson, aRunnable);
+      if (AppConfig.isLogResponsePayload ())
+      {
+        LOGGER.info (sLogPrefix +
+                     "Response JSON is:\n" +
+                     new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeAsString (aResultJson));
+      }
+      aUnifiedResponse.json (aResultJson);
+    }
   }
 }

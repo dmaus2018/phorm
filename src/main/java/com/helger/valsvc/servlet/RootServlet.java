@@ -70,10 +70,11 @@ public class RootServlet extends AbstractXServlet
           }
         if (!bIncludeDeprecated)
           h.body ()
-           .addChild (div (a (new SimpleURL (aRequestScope.getURIDecoded ()).add (PARAM_INCLUDE_DEPRECATED)).addChild ("Show below list including duplicates")));
+           .addChild (div (a (new SimpleURL (aRequestScope.getURIDecoded ()).add (PARAM_INCLUDE_DEPRECATED)).addChild ("Show below list including deprecated entries")));
         h.body ()
-         .addChild (div ("Supported VESIDs are" + (bIncludeDeprecated ? " (including deprecated)" : "") + ":")
-                                                                                                              .addChild (aUL));
+         .addChild (div ("Supported VESIDs are" +
+                         (bIncludeDeprecated ? " (including deprecated)" : "") +
+                         ":").addChild (aUL));
       }
       PhotonHTMLHelper.createHTMLResponse (aRequestScope, aUnifiedResponse, x -> h);
     }

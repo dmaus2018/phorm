@@ -225,6 +225,11 @@
       <artifactId>ph-oton-jetty</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.helger.web</groupId>
+      <artifactId>ph-httpclient</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

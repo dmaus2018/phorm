@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2022-2025 Philip Helger
+ *
+ * All rights reserved.
+ */
 package com.helger.valsvc.validation;
 
 import java.io.IOException;

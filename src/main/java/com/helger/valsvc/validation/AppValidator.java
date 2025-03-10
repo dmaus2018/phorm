@@ -43,6 +43,7 @@ import com.helger.phive.ublbe.UBLBEValidation;
 import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phive.xrechnung.XRechnungValidation;
+import com.helger.phive.zatca.ZATCAValidation;
 import com.helger.phive.zugferd.ZugferdValidation;
 
 /**
@@ -77,6 +78,7 @@ public class AppValidator
     UBLValidation.initUBLAllVersions (VER);
     UBLBEValidation.initUBLBE (VER);
     XRechnungValidation.initXRechnung (VER);
+    ZATCAValidation.initZATCA (VER);
     ZugferdValidation.initZugferd (VER);
   }
 

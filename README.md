@@ -127,6 +127,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2025-03-10
+    * Added the new phive-rules-zatca for Saudi Arabian invoice
 * 2025-03-08
     * Added all other remaining validation rules from phive-rules
 * 2025-03-04

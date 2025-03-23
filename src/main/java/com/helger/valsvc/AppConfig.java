@@ -71,7 +71,7 @@ public final class AppConfig
 
   public static boolean isLogResponsePayload ()
   {
-    return getConfig ().getAsBoolean ("valsvc.api.response.log.payload", true);
+    return getConfig ().getAsBoolean ("valsvc.api.response.log.payload", false);
   }
 
   public static boolean isStatusAPIEnabled ()

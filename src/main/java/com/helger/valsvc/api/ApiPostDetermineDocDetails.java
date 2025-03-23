@@ -53,14 +53,16 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
     final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
     if (StringHelper.hasNoText (sToken))
     {
-      LOGGER.error (sLogPrefix + "The specific token header is missing");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+      final String sErrorMsg = "The specific token header is missing";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_FORBIDDEN);
       return;
     }
     if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
     {
-      LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+      final String sErrorMsg = "The specified token value does not match the configured required token";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_FORBIDDEN);
       return;
     }
 
@@ -69,21 +71,24 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
     final Document aDoc = DOMReader.readXMLDOM (aRequestScope.getRequest ().getInputStream ());
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
-      LOGGER.error (sLogPrefix + "Failed to read the message body as XML");
-      aUnifiedResponse.createBadRequest ();
+      final String sErrorMsg = "Failed to read the message body as XML";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      aUnifiedResponse.text (sErrorMsg).createBadRequest ();
       return;
     }
 
     LOGGER.info (sLogPrefix + "Trying to determine payload type");
-    final DocumentDetails aDDO = ValSvcDDD.findDocumentDetails (aDoc.getDocumentElement ());
-    if (aDDO == null)
+    final DocumentDetails aDD = ValSvcDDD.findDocumentDetails (aDoc.getDocumentElement ());
+    if (aDD == null)
     {
-      LOGGER.error (sLogPrefix + "Failed to determine the document types");
+      final String sErrorMsg = "Failed to determine the document types";
+      LOGGER.error (sLogPrefix + sErrorMsg);
+      // HTTP no content cannot have content
       aUnifiedResponse.createNoContent ();
       return;
     }
 
-    final IJsonObject aJson = aDDO.getAsJson ();
+    final IJsonObject aJson = aDD.getAsJson ();
 
     if (AppConfig.isLogResponsePayload ())
     {

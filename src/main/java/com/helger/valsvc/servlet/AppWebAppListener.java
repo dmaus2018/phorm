@@ -30,6 +30,7 @@ import com.helger.valsvc.AppSecurity;
 import com.helger.valsvc.CApp;
 import com.helger.valsvc.api.ApiGetAllVESIDs;
 import com.helger.valsvc.api.ApiPostDetermineDocDetails;
+import com.helger.valsvc.api.ApiPostDetermineDocTypeAndValidate;
 import com.helger.valsvc.api.ApiPostValidate;
 import com.helger.xservlet.requesttrack.RequestTrackerSettings;
 
@@ -136,6 +137,8 @@ public final class AppWebAppListener extends WebAppListener
   protected void initAPI (@Nonnull final IAPIRegistry aAPIRegistry)
   {
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/validate/{vesid}"), ApiPostValidate.class));
+    aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/dd_and_validate"),
+                                                 ApiPostDetermineDocTypeAndValidate.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.get ("/get/vesids"), ApiGetAllVESIDs.class));
     aAPIRegistry.registerAPI (new APIDescriptor (APIPath.post ("/determinedoctype"), ApiPostDetermineDocDetails.class));
   }

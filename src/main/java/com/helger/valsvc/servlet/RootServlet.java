@@ -51,7 +51,10 @@ public class RootServlet extends AbstractXServlet
           aUL.addItem (div ("HTTP GET to").addChild (a (new SimpleURL ("api/get/vesids")).addChild (code ("/api/get/vesids")))
                                           .addChild (" to get all registered VESIDs"));
           aUL.addItem (div ("HTTP POST to ").addChild (code ("/api/determinedoctype"))
-                                            .addChild (" for detecting the payload type"));
+                                            .addChild (" to detect the payload type"));
+          aUL.addItem (div ("HTTP POST to ").addChild (code ("/api/dd_and_validate"))
+                                            .addChild (" to detect the payload type and perform a validation based on the result"));
+
           h.body ().addChild (div ("Supported APIs are:").addChild (aUL));
         }
 
@@ -72,9 +75,8 @@ public class RootServlet extends AbstractXServlet
           h.body ()
            .addChild (div (a (new SimpleURL (aRequestScope.getURIDecoded ()).add (PARAM_INCLUDE_DEPRECATED)).addChild ("Show below list including deprecated entries")));
         h.body ()
-         .addChild (div ("Supported VESIDs are" +
-                         (bIncludeDeprecated ? " (including deprecated)" : "") +
-                         ":").addChild (aUL));
+         .addChild (div ("Supported VESIDs are" + (bIncludeDeprecated ? " (including deprecated)" : "") + ":")
+                                                                                                              .addChild (aUL));
       }
       PhotonHTMLHelper.createHTMLResponse (aRequestScope, aUnifiedResponse, x -> h);
     }

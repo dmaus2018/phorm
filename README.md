@@ -54,6 +54,12 @@ The services offers the following APIs.
   "profileName":"Peppol BIS Billing UBL Invoice V3"
 }
 ```
+* POST **`/api/dd_and_validate`**
+  * Determine the document type and afterwards validate the provided payload in the body against the determined validation rules
+  * Requires the HTTP header `X-Token` to have the configured value (see below for `valsvc.api.requiredtoken`)
+  * If the HTTP Request Header `Accept` with value `application/xml`  is present, the result is an XML structure. Else the result is a JSON structure
+  * Test invocation (replace `XXX` with real token):
+    * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/dd_and_validate/`
 
 # Configuration
 
@@ -69,7 +75,7 @@ It supports the following settings:
 * **`valsvc.statusapi.enabled`**: a flag that indicates, if the status API (`/status`) should deliver data or not.
 * **`valsvc.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it.
 * **`valsvc.api.response.onfailure.http400`**: a flag to indicate, whether the API should return HTTP 400 (Bad Request) on failed validations or not. The default is `true` for backwards compatibility reasons.
-* **`valsvc.api.response.log.payload`**: a flag to indicate, whether the validation response should be logged in the console or not. The default is `true` for backwards compatibility reasons.
+* **`valsvc.api.response.log.payload`**: a flag to indicate, whether the validation response should be logged in the console or not. The default is `false`.
 
 # Building
 
@@ -127,6 +133,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2025-03-23
+    * Added new API `/api/dd_and_validate` to run document type detection and validation in one call
+    * Changed the default value of `valsvc.api.response.log.payload` to `false`
 * 2025-03-10
     * Added the new phive-rules-zatca for Saudi Arabian invoice
 * 2025-03-08

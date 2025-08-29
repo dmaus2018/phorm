@@ -8,19 +8,19 @@ package com.helger.valsvc.api;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.helger.commons.annotation.Nonempty;
-import com.helger.commons.timing.StopWatch;
+import com.helger.annotation.Nonempty;
+import com.helger.base.timing.StopWatch;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.api.IAPIExecutor;
 import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.servlet.response.UnifiedResponse;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
+
+import jakarta.annotation.Nonnull;
 
 /**
  * Abstract base invoker for REST API

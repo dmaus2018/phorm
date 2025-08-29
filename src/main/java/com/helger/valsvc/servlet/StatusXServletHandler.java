@@ -8,25 +8,25 @@ package com.helger.valsvc.servlet;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.helger.commons.annotation.ReturnsMutableCopy;
-import com.helger.commons.datetime.PDTFactory;
-import com.helger.commons.datetime.PDTWebDateHelper;
-import com.helger.commons.debug.GlobalDebug;
-import com.helger.commons.mime.CMimeType;
-import com.helger.commons.mime.MimeType;
-import com.helger.commons.system.SystemProperties;
+import com.helger.annotation.style.ReturnsMutableCopy;
+import com.helger.base.debug.GlobalDebug;
+import com.helger.base.system.SystemProperties;
+import com.helger.datetime.helper.PDTFactory;
+import com.helger.datetime.web.PDTWebDateHelper;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
+import com.helger.mime.CMimeType;
+import com.helger.mime.MimeType;
 import com.helger.servlet.response.UnifiedResponse;
 import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.AppVersion;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xservlet.handler.simple.IXServletSimpleHandler;
+
+import jakarta.annotation.Nonnull;
 
 /**
  * Create status as JSON object.

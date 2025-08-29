@@ -5,8 +5,7 @@
  */
 package com.helger.valsvc;
 
-import javax.annotation.concurrent.Immutable;
-
+import com.helger.annotation.concurrent.Immutable;
 import com.helger.photon.security.CSecurity;
 import com.helger.photon.security.mgr.PhotonSecurityManager;
 import com.helger.photon.security.user.IUserManager;

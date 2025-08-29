@@ -15,13 +15,13 @@ import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.helger.commons.concurrent.ExecutorServiceHelper;
-import com.helger.commons.io.resource.FileSystemResource;
-import com.helger.commons.io.resource.IReadableResource;
-import com.helger.commons.io.stream.StreamHelper;
-import com.helger.commons.timing.StopWatch;
+import com.helger.base.concurrent.ExecutorServiceHelper;
+import com.helger.base.io.stream.StreamHelper;
+import com.helger.base.timing.StopWatch;
 import com.helger.httpclient.HttpClientManager;
 import com.helger.httpclient.response.ResponseHandlerHttpEntity;
+import com.helger.io.resource.FileSystemResource;
+import com.helger.io.resource.IReadableResource;
 
 public class MainRunValidationMultiple
 {

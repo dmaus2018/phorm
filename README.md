@@ -9,7 +9,7 @@ This validation service does not provide all validation rules out of the box, to
 
 # Development environment
 
-* Requires Java 11 or newer
+* Requires Java 17 or newer
 * [Apache Maven](https://maven.apache.org) is used as the build tool. May be abstracted by a Docker image.
 * Coding language: English
 
@@ -81,7 +81,7 @@ It supports the following settings:
 
 ## From Source 
 
-* Requires Java 11 or higher
+* Requires Java 17 or higher
 * Build with Apache Maven 3.x - via `mvn clean install`
 
 * Alternatively build with a Docker Maven image:
@@ -133,6 +133,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2025-08-29
+    * The minimum requirement is now Java 17
 * 2025-03-23
     * Added new API `/api/dd_and_validate` to run document type detection and validation in one call
     * Changed the default value of `valsvc.api.response.log.payload` to `false`

@@ -5,19 +5,19 @@
  */
 package com.helger.valsvc.ddd;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
+import com.helger.annotation.concurrent.Immutable;
 import com.helger.ddd.DDDVersion;
 import com.helger.ddd.DocumentDetails;
 import com.helger.ddd.DocumentDetailsDeterminator;
 import com.helger.ddd.model.DDDSyntaxList;
 import com.helger.ddd.model.DDDValueProviderList;
+
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 /**
  * The utility class to configure and access DDD

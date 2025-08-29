@@ -8,15 +8,13 @@ package com.helger.valsvc.api;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.helger.commons.annotation.Nonempty;
-import com.helger.commons.http.CHttp;
-import com.helger.commons.string.StringHelper;
+import com.helger.annotation.Nonempty;
+import com.helger.base.string.StringHelper;
 import com.helger.diver.api.coord.DVRCoordinate;
+import com.helger.http.CHttp;
 import com.helger.json.IJsonArray;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonArray;
@@ -30,6 +28,8 @@ import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.valsvc.AppConfig;
 import com.helger.valsvc.validation.AppValidator;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
+
+import jakarta.annotation.Nonnull;
 
 /**
  * Get all registered VES IDs
@@ -57,7 +57,7 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
         LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
 
       final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-      if (StringHelper.hasNoText (sToken))
+      if (StringHelper.isEmpty (sToken))
       {
         LOGGER.error (sLogPrefix + "The specific token header is missing");
         aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
@@ -90,7 +90,7 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
           aJsonIDs.add (aObj);
         }
       aJson.add ("count", aJsonIDs.size ());
-      aJson.addJson ("vesids", aJsonIDs);
+      aJson.add ("vesids", aJsonIDs);
     });
 
     if (AppConfig.isLogResponsePayload ())

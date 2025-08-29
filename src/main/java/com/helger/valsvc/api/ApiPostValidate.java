@@ -10,24 +10,22 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-import com.helger.commons.annotation.Nonempty;
-import com.helger.commons.callback.IThrowingRunnable;
-import com.helger.commons.http.CHttp;
-import com.helger.commons.mime.CMimeType;
-import com.helger.commons.string.StringHelper;
-import com.helger.commons.timing.StopWatch;
+import com.helger.annotation.Nonempty;
+import com.helger.base.iface.IThrowingRunnable;
+import com.helger.base.string.StringHelper;
+import com.helger.base.timing.StopWatch;
 import com.helger.diver.api.coord.DVRCoordinate;
-import com.helger.http.AcceptMimeTypeList;
+import com.helger.http.CHttp;
+import com.helger.http.header.specific.AcceptMimeTypeList;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
+import com.helger.mime.CMimeType;
 import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.json.PhiveJsonHelper;
@@ -48,6 +46,8 @@ import com.helger.xml.microdom.serialize.MicroWriter;
 import com.helger.xml.serialize.read.DOMReader;
 import com.helger.xml.serialize.write.EXMLSerializeIndent;
 import com.helger.xml.serialize.write.XMLWriterSettings;
+
+import jakarta.annotation.Nonnull;
 
 /**
  * Perform validation only via API
@@ -74,7 +74,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
       LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
 
     final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-    if (StringHelper.hasNoText (sToken))
+    if (StringHelper.isEmpty (sToken))
     {
       LOGGER.error (sLogPrefix + "The specific token header is missing");
       aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
@@ -118,7 +118,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
     final IJsonObject aResultJson = new JsonObject ();
     final IMicroDocument aResultXML = new MicroDocument ();
-    final IMicroElement aResultXMLRoot = aResultXML.appendElement ("validationResults");
+    final IMicroElement aResultXMLRoot = aResultXML.addElement ("validationResults");
 
     final IThrowingRunnable <Exception> aRunnable = () -> {
       final boolean bOverallSuccess;

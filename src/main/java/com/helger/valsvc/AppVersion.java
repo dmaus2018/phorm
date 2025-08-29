@@ -5,13 +5,13 @@
  */
 package com.helger.valsvc;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
+import com.helger.annotation.concurrent.Immutable;
+import com.helger.base.exception.InitializationException;
+import com.helger.base.rt.NonBlockingProperties;
+import com.helger.base.rt.PropertiesHelper;
+import com.helger.io.resource.ClassPathResource;
 
-import com.helger.commons.exception.InitializationException;
-import com.helger.commons.io.resource.ClassPathResource;
-import com.helger.commons.lang.NonBlockingProperties;
-import com.helger.commons.lang.PropertiesHelper;
+import jakarta.annotation.Nonnull;
 
 /**
  * Validation Service version number
@@ -47,8 +47,8 @@ public final class AppVersion
   {}
 
   /**
-   * @return The version number of the ValSvc read from the internal properties
-   *         file. Never <code>null</code>.
+   * @return The version number of the ValSvc read from the internal properties file. Never
+   *         <code>null</code>.
    */
   @Nonnull
   public static String getVersionNumber ()
@@ -57,8 +57,8 @@ public final class AppVersion
   }
 
   /**
-   * @return The build timestamp of the ValSvc read from the internal properties
-   *         file. Never <code>null</code>.
+   * @return The build timestamp of the ValSvc read from the internal properties file. Never
+   *         <code>null</code>.
    */
   @Nonnull
   public static String getBuildTimestamp ()

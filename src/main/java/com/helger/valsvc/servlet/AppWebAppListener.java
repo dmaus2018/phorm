@@ -7,16 +7,13 @@ package com.helger.valsvc.servlet;
 
 import java.time.OffsetDateTime;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import com.helger.commons.CGlobal;
-import com.helger.commons.datetime.PDTFactory;
-import com.helger.commons.exception.InitializationException;
-import com.helger.commons.string.StringHelper;
+import com.helger.base.CGlobal;
+import com.helger.base.exception.InitializationException;
+import com.helger.base.string.StringHelper;
 import com.helger.commons.vendor.VendorInfo;
+import com.helger.datetime.helper.PDTFactory;
 import com.helger.photon.api.APIDescriptor;
 import com.helger.photon.api.APIPath;
 import com.helger.photon.api.IAPIRegistry;
@@ -34,6 +31,8 @@ import com.helger.valsvc.api.ApiPostDetermineDocTypeAndValidate;
 import com.helger.valsvc.api.ApiPostValidate;
 import com.helger.xservlet.requesttrack.RequestTrackerSettings;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.ServletContext;
 
 /**
@@ -108,7 +107,7 @@ public final class AppWebAppListener extends WebAppListener
 
     // Check configuration
     // This property is by default in the "private-application.properties" file
-    if (StringHelper.hasNoText (AppConfig.getAPIRequiredToken ()))
+    if (StringHelper.isEmpty (AppConfig.getAPIRequiredToken ()))
       throw new InitializationException ("The configuration property 'valsvc.api.requiredtoken' is not set or empty. This is a required configuration.");
   }
 

@@ -7,8 +7,8 @@ package com.helger.valsvc.servlet;
 
 import java.nio.charset.StandardCharsets;
 
-import com.helger.commons.http.EHttpMethod;
-import com.helger.commons.mime.CMimeType;
+import com.helger.http.EHttpMethod;
+import com.helger.mime.CMimeType;
 import com.helger.xservlet.AbstractXServlet;
 
 public final class PingPongServlet extends AbstractXServlet

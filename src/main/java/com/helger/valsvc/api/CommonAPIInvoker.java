@@ -8,16 +8,16 @@ package com.helger.valsvc.api;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.Immutable;
-
-import com.helger.commons.callback.IThrowingRunnable;
-import com.helger.commons.datetime.PDTFactory;
-import com.helger.commons.timing.StopWatch;
+import com.helger.annotation.concurrent.Immutable;
+import com.helger.base.iface.IThrowingRunnable;
+import com.helger.base.timing.StopWatch;
+import com.helger.datetime.helper.PDTFactory;
 import com.helger.json.IJsonObject;
 import com.helger.phive.result.json.PhiveJsonHelper;
 import com.helger.phive.result.xml.PhiveXMLHelper;
 import com.helger.xml.microdom.IMicroElement;
+
+import jakarta.annotation.Nonnull;
 
 @Immutable
 public final class CommonAPIInvoker
@@ -38,7 +38,7 @@ public final class CommonAPIInvoker
     catch (final Exception ex)
     {
       aJson.add (JSON_SUCCESS, false);
-      aJson.addJson ("exception", PhiveJsonHelper.getJsonStackTrace (ex));
+      aJson.add ("exception", PhiveJsonHelper.getJsonStackTrace (ex));
     }
     aSW.stop ();
 
@@ -56,12 +56,12 @@ public final class CommonAPIInvoker
     }
     catch (final Exception ex)
     {
-      aXML.appendElement (JSON_SUCCESS).appendText (false);
-      aXML.appendChild (PhiveXMLHelper.getXMLStackTrace (ex, "exception"));
+      aXML.addElement (JSON_SUCCESS).addText (false);
+      aXML.addChild (PhiveXMLHelper.getXMLStackTrace (ex, "exception"));
     }
     aSW.stop ();
 
-    aXML.appendElement ("invocationDateTime").appendText (DateTimeFormatter.ISO_ZONED_DATE_TIME.format (aQueryDT));
-    aXML.appendElement ("invocationDurationMillis").appendText (aSW.getMillis ());
+    aXML.addElement ("invocationDateTime").addText (DateTimeFormatter.ISO_ZONED_DATE_TIME.format (aQueryDT));
+    aXML.addElement ("invocationDurationMillis").addText (aSW.getMillis ());
   }
 }

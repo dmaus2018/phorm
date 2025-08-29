@@ -7,13 +7,13 @@ package com.helger.valsvc;
 
 import java.util.Map;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.helger.commons.annotation.Nonempty;
+import com.helger.annotation.Nonempty;
 import com.helger.photon.core.interror.InternalErrorBuilder;
 import com.helger.photon.core.interror.callback.AbstractErrorCallback;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
+
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 public final class AppErrorHandler extends AbstractErrorCallback
 {

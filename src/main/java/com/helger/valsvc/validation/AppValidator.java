@@ -8,12 +8,9 @@ package com.helger.valsvc.validation;
 import java.util.Comparator;
 import java.util.Locale;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.w3c.dom.Document;
 
-import com.helger.commons.collection.impl.ICommonsList;
+import com.helger.collection.commons.ICommonsList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.phive.api.execute.ValidationExecutionManager;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
@@ -45,6 +42,9 @@ import com.helger.phive.xml.source.ValidationSourceXML;
 import com.helger.phive.xrechnung.XRechnungValidation;
 import com.helger.phive.zatca.ZATCAValidation;
 import com.helger.phive.zugferd.ZugferdValidation;
+
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 /**
  * Default validation repository

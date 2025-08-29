@@ -11,11 +11,11 @@ import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 
-import com.helger.commons.io.resource.FileSystemResource;
-import com.helger.commons.io.resource.IReadableResource;
-import com.helger.commons.io.stream.StreamHelper;
+import com.helger.base.io.stream.StreamHelper;
 import com.helger.httpclient.HttpClientManager;
 import com.helger.httpclient.response.ResponseHandlerString;
+import com.helger.io.resource.FileSystemResource;
+import com.helger.io.resource.IReadableResource;
 
 /**
  * Example code to run the validation via HTTP client

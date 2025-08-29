@@ -7,8 +7,7 @@ package com.helger.valsvc;
 
 import java.util.Locale;
 
-import javax.annotation.concurrent.Immutable;
-
+import com.helger.annotation.concurrent.Immutable;
 import com.helger.photon.security.CSecurity;
 
 @Immutable

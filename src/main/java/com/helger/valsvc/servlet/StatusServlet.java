@@ -5,7 +5,7 @@
  */
 package com.helger.valsvc.servlet;
 
-import com.helger.commons.http.EHttpMethod;
+import com.helger.http.EHttpMethod;
 import com.helger.xservlet.AbstractXServlet;
 
 /**

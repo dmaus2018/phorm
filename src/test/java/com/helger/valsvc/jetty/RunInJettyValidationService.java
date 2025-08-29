@@ -5,8 +5,7 @@
  */
 package com.helger.valsvc.jetty;
 
-import javax.annotation.concurrent.Immutable;
-
+import com.helger.annotation.concurrent.Immutable;
 import com.helger.photon.jetty.JettyStarter;
 
 /**

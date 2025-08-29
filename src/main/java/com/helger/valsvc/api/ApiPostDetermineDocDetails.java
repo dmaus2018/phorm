@@ -9,16 +9,14 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-import com.helger.commons.annotation.Nonempty;
-import com.helger.commons.http.CHttp;
-import com.helger.commons.string.StringHelper;
+import com.helger.annotation.Nonempty;
+import com.helger.base.string.StringHelper;
 import com.helger.ddd.DocumentDetails;
+import com.helger.http.CHttp;
 import com.helger.json.IJsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
@@ -29,6 +27,8 @@ import com.helger.valsvc.AppVersion;
 import com.helger.valsvc.ddd.ValSvcDDD;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.serialize.read.DOMReader;
+
+import jakarta.annotation.Nonnull;
 
 /**
  * Determine the document type and return it
@@ -51,7 +51,7 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
 
     // Check request validity
     final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-    if (StringHelper.hasNoText (sToken))
+    if (StringHelper.isEmpty (sToken))
     {
       final String sErrorMsg = "The specific token header is missing";
       LOGGER.error (sLogPrefix + sErrorMsg);

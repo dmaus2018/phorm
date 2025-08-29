@@ -5,16 +5,16 @@
  */
 package com.helger.valsvc;
 
-import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.helger.commons.annotation.UsedViaReflection;
-import com.helger.commons.exception.InitializationException;
-import com.helger.commons.lang.ClassHelper;
+import com.helger.annotation.style.UsedViaReflection;
+import com.helger.base.exception.InitializationException;
+import com.helger.base.lang.clazz.ClassHelper;
 import com.helger.scope.IScope;
 import com.helger.scope.singleton.AbstractGlobalSingleton;
+
+import jakarta.annotation.Nonnull;
 
 public final class AppMetaManager extends AbstractGlobalSingleton
 {

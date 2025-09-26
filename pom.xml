@@ -35,7 +35,7 @@
   </developers>
   
   <properties>
-    <log4j.version>2.25.1</log4j.version>
+    <log4j.version>2.25.2</log4j.version>
   </properties>
   
   <dependencyManagement>
@@ -100,7 +100,7 @@
       <dependency>
         <groupId>com.helger.phive.rules</groupId>
         <artifactId>phive-rules-parent-pom</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.2</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -193,6 +193,10 @@
     <dependency>
       <groupId>com.helger.phive.rules</groupId>
       <artifactId>phive-rules-france</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.helger.phive.rules</groupId>
+      <artifactId>phive-rules-ksef</artifactId>
     </dependency>
     <dependency>
       <groupId>com.helger.phive.rules</groupId>

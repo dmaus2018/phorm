@@ -26,6 +26,7 @@ import com.helger.phive.ebinterface.EbInterfaceValidation;
 import com.helger.phive.ehf.EHFValidation;
 import com.helger.phive.en16931.EN16931Validation;
 import com.helger.phive.energieefactuur.EnergieEFactuurValidation;
+import com.helger.phive.eracun.HReRacunValidation;
 import com.helger.phive.facturae.FacturaeValidation;
 import com.helger.phive.fatturapa.FatturaPAValidation;
 import com.helger.phive.finvoice.FinvoiceValidation;
@@ -67,6 +68,7 @@ public class AppValidator
     FatturaPAValidation.initFatturaPA (VESREG);
     FinvoiceValidation.initFinvoice (VESREG);
     FranceCTCValidation.initFranceCTC (VESREG);
+    HReRacunValidation.init (VESREG);
     KSeFValidation.initKSeF (VESREG);
     OIOUBLValidation.initOIOUBL (VESREG);
     PeppolValidation.initStandard (VESREG);

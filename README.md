@@ -133,6 +133,8 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+* 2026-02-18
+    * phive-rules 4.1.8
 * 2025-09-02
     * The API `/api/determinedoctype` can now also return XML payload
     * Fixed an error with the document type ID scheme for PINT document types in determination

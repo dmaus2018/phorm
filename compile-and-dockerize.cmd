@@ -9,8 +9,10 @@
 call mvn clean install
 if errorlevel 1 goto error
 
-docker build --pull -t phelger/valsvc .
+docker build --pull -t phelger/phorm .
 if errorlevel 1 goto error
+
+docker tag phelger/phorm phelger/valsvc
 
 goto end
 :error

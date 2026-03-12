@@ -1,0 +1,20 @@
+/*
+ * Copyright (C) 2022-2026 Philip Helger
+ *
+ * All rights reserved.
+ */
+package com.helger.phorm;
+
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+public final class AppVersionTest
+{
+  @Test
+  public void testBasic () throws Exception
+  {
+    assertNotNull (AppVersion.getVersionNumber ());
+    assertNotNull (AppVersion.getBuildTimestamp ());
+  }
+}

@@ -13,10 +13,10 @@ RUN apt-get update \
   && apt-get install -y unzip \
   && rm -rf /var/lib/apt/lists/*
 
-COPY target/*.war valsvc.war
-RUN unzip valsvc.war -d /valsvc \
-  && rm /valsvc/WEB-INF/classes/application.properties \
-  && mv /valsvc/WEB-INF/classes/application.docker.properties /valsvc/WEB-INF/classes/application.properties
+COPY target/*.war phorm.war
+RUN unzip phorm.war -d /phorm \
+  && rm /phorm/WEB-INF/classes/application.properties \
+  && mv /phorm/WEB-INF/classes/application.docker.properties /phorm/WEB-INF/classes/application.properties
 
 
 # Stage 2
@@ -27,4 +27,4 @@ ENV CATALINS_OPTS="-Djava.security.egd=file:/dev/urandom"
 
 WORKDIR $CATALINA_HOME/webapps
 
-COPY --from=build /valsvc $CATALINA_HOME/webapps/ROOT
+COPY --from=build /phorm $CATALINA_HOME/webapps/ROOT

@@ -6,5 +6,5 @@
 
 @echo off
 
-docker stop valsvc
-docker rm valsvc
+docker stop phorm
+docker rm phorm

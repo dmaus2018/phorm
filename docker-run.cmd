@@ -6,7 +6,7 @@
 
 @echo off
 
-docker run -d --name valsvc -p 8080:8080 phelger/valsvc
+docker run -d --name phorm -p 8080:8080 phelger/phorm
 if errorlevel 1 goto error
 
 goto end

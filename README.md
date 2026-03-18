@@ -150,49 +150,67 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-* 2026-03-18
-    * Made the repository public - thanks for all the supporters!!!
-* 2026-03-17
-    * Updated to phive 12.0.1 and phive-rules 4.2.3
-* 2026-03-12
-    * **Rebranding**: the project has been renamed from "Validation Service" / "valsvc" to **Phorm**
-    * The Maven artifact ID changed from `validation-service` to `phorm`, so the WAR file is now `phorm.war` instead of `validation-service.war`
-    * The Java package was renamed from `com.helger.valsvc` to `com.helger.phorm`
-    * The Docker image is now `phelger/phorm` (the old tag `phelger/valsvc` is still provided for backwards compatibility)
-    * Configuration property keys were renamed from `valsvc.*` to `phorm.*` (e.g. `valsvc.api.requiredtoken` → `phorm.api.requiredtoken`). The old `valsvc.*` keys are still accepted as fallback values.
-    * The log prefix changed from `[VAL-SVC]` to `[PHORM]`
-    * The default Docker data path changed from `/config/valsvc` to `/config/phorm`
-* 2026-02-22
-    * Updated to phive 12.0.0 and phive-rules 4.2.0
-    * Both `/api/validate/` and `/api/dd_and_validate` are now able to create HTML results (first draft)
-* 2026-02-18
-    * Updated to phive-rules 4.1.8
-* 2025-09-02
-    * The API `/api/determinedoctype` can now also return XML payload
-    * Fixed an error with the document type ID scheme for PINT document types in determination
-* 2025-08-29
-    * The minimum requirement is now Java 17
-* 2025-03-23
-    * Added new API `/api/dd_and_validate` to run document type detection and validation in one call
-    * Changed the default value of `phorm.api.response.log.payload` (formerly `valsvc.api.response.log.payload`) to `false`
-* 2025-03-10
-    * Added the new phive-rules-zatca for Saudi Arabian invoice
-* 2025-03-08
-    * Added all other remaining validation rules from phive-rules
-* 2025-03-04
-    * Added Danish OIOUBL rules to the ruleset
-* 2025-01-09
-    * The API `/api/validate/{vesid}` can return JSON or XML (depending on the `Accept` header)
-* 2024-12-06
-    * Added new API `/api/determinedoctype` to auto detect payload details
-* 2024-12-05
-    * the new configuration property `phorm.api.response.log.payload` (formerly `valsvc.api.response.log.payload`) can be used to disable logging of the result JSON
-    * Added support for German ZuGFERD XML invoices 
-* 2024-12-03
-    * the new configuration property `phorm.api.response.onfailure.http400` (formerly `valsvc.api.response.onfailure.http400`) can be used to disable returning HTTP 400 on validation failure
-* 2024-09-17
-    * updated to phive v10 and ph-diver v3
-* 2024-05-23
-    * added UBL.BE rules as well 
-* 2024-01-10
-    * added XRechnung rules as well
+v2.0.0 - 2026-03-18
+* Made the repository public - thanks for all the supporters!!!
+* Starting to use semantic versioning
+
+2026-03-17
+* Updated to phive 12.0.1 and phive-rules 4.2.3
+
+2026-03-12
+* **Rebranding**: the project has been renamed from "Validation Service" / "valsvc" to **Phorm**
+* The Maven artifact ID changed from `validation-service` to `phorm`, so the WAR file is now `phorm.war` instead of `validation-service.war`
+* The Java package was renamed from `com.helger.valsvc` to `com.helger.phorm`
+* The Docker image is now `phelger/phorm` (the old tag `phelger/valsvc` is still provided for backwards compatibility)
+* Configuration property keys were renamed from `valsvc.*` to `phorm.*` (e.g. `valsvc.api.requiredtoken` → `phorm.api.requiredtoken`). The old `valsvc.*` keys are still accepted as fallback values.
+* The log prefix changed from `[VAL-SVC]` to `[PHORM]`
+* The default Docker data path changed from `/config/valsvc` to `/config/phorm`
+
+2026-02-22
+* Updated to phive 12.0.0 and phive-rules 4.2.0
+* Both `/api/validate/` and `/api/dd_and_validate` are now able to create HTML results (first draft)
+
+2026-02-18
+* Updated to phive-rules 4.1.8
+
+2025-09-02
+* The API `/api/determinedoctype` can now also return XML payload
+* Fixed an error with the document type ID scheme for PINT document types in determination
+
+2025-08-29
+* The minimum requirement is now Java 17
+
+2025-03-23
+* Added new API `/api/dd_and_validate` to run document type detection and validation in one call
+* Changed the default value of `phorm.api.response.log.payload` (formerly `valsvc.api.response.log.payload`) to `false`
+
+2025-03-10
+* Added the new phive-rules-zatca for Saudi Arabian invoice
+
+2025-03-08
+* Added all other remaining validation rules from phive-rules
+
+2025-03-04
+* Added Danish OIOUBL rules to the ruleset
+
+2025-01-09
+* The API `/api/validate/{vesid}` can return JSON or XML (depending on the `Accept` header)
+
+2024-12-06
+* Added new API `/api/determinedoctype` to auto detect payload details
+
+2024-12-05
+* the new configuration property `phorm.api.response.log.payload` (formerly `valsvc.api.response.log.payload`) can be used to disable logging of the result JSON
+* Added support for German ZuGFERD XML invoices 
+
+2024-12-03
+* the new configuration property `phorm.api.response.onfailure.http400` (formerly `valsvc.api.response.onfailure.http400`) can be used to disable returning HTTP 400 on validation failure
+
+2024-09-17
+* updated to phive v10 and ph-diver v3
+
+2024-05-23
+* added UBL.BE rules as well 
+
+2024-01-10
+* added XRechnung rules as well

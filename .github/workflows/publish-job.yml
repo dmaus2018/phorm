@@ -1,0 +1,36 @@
+name: Upload to staging
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        
+      - name: Setup Java 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+          
+      - name: Cache local Maven repository
+        uses: actions/cache@v5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and copy
+        run: mvn -B package
+        
+      - name: Remember output
+        uses: actions/upload-artifact@v7
+        with:
+          path: target/phorm-*.war
+          name: phorm.zip

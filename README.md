@@ -155,6 +155,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.0.2 - 2026-04-02
+* Updated to phive 12.0.2 and phive-rules 4.3.0
+
 v2.0.1 - 2026-03-25
 * Updated to phive-rules 4.2.5
 

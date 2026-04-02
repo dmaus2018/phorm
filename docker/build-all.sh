@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2026 Philip Helger (www.helger.com)
+# Copyright (C) 2022-2026 Philip Helger (www.helger.com)
 # philip[at]helger[dot]com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-version=2.0.1
+version=2.0.2
 
 #echo Docker login
 #echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin

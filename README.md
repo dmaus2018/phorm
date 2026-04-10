@@ -155,6 +155,11 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.0.3 - 2026-04-10
+* Updated to phive 12.0.3
+* Updated to ddd 0.8.5
+* Added support for automatic unwrapping of SBDH/XHE envelopes in `/dd_and_validate`. See [#11](https://github.com/phax/phorm/issues/11)
+
 v2.0.2 - 2026-04-02
 * Updated to phive 12.0.2 and phive-rules 4.3.0
 

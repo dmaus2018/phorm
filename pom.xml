@@ -62,7 +62,7 @@
   </developers>
   
   <properties>
-    <log4j.version>2.25.4</log4j.version>
+    <log4j.version>2.26.0</log4j.version>
   </properties>
   
   <dependencyManagement>

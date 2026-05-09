@@ -51,6 +51,7 @@ import com.helger.phive.setu.SETUValidation;
 import com.helger.phive.simplerinvoicing.SimplerInvoicingValidation;
 import com.helger.phive.svefaktura.SvefakturaValidation;
 import com.helger.phive.teapps.TEAPPSValidation;
+import com.helger.phive.turkey.TurkeyEFaturaValidation;
 import com.helger.phive.ubl.UBLValidation;
 import com.helger.phive.ublbe.UBLBEValidation;
 import com.helger.phive.xml.source.IValidationSourceXML;
@@ -92,6 +93,7 @@ public class AppValidator
     EnergieEFactuurValidation.initEnergieEFactuur (VESREG);
     SvefakturaValidation.initSvefaktura (VESREG);
     TEAPPSValidation.initTEAPPS (VESREG);
+    TurkeyEFaturaValidation.initTurkeyEFatura (VESREG);
     UBLValidation.initUBLAllVersions (VESREG);
     UBLBEValidation.initUBLBE (VESREG);
     XRechnungValidation.initXRechnung (VESREG);

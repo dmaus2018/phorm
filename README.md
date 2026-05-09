@@ -155,6 +155,10 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.0.4 - 2026-05-09
+* Updated to phive-rules 4.3.1 (including new rules for Turkish format)
+* Updated to ddd 0.8.6
+
 v2.0.3 - 2026-04-10
 * Updated to phive 12.0.3
 * Updated to ddd 0.8.5

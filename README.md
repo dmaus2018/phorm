@@ -66,6 +66,19 @@ The services offers the following APIs.
     Else the result is a JSON structure
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/xml" -H "X-Token: XXX" -d @src/test/resources/testfiles/peppol-bis3/base-example.xml http://localhost:8080/api/dd_and_validate/`
+* POST **`/api/hybrid_validate`**
+  * Validate a ZUGFeRD / Factur-X hybrid PDF invoice. The PDF must be the POST body. The carrier-side rules
+    (BR-HYBRID-* business rules and PDF/A-3 conformance via veraPDF) are evaluated by [kaltblut](https://github.com/phax/kaltblut),
+    then the embedded XML is extracted, its document type auto-determined (as in `/api/dd_and_validate`), and
+    its XML business rules applied. All layers are returned in a single phive `ValidationResultList`, with the
+    PDF carrier layers first.
+  * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
+  * Optional URL query parameter `country=DE|FR|OTHER` drives the country-specific BR-HYBRID rules
+    (BR-HYBRID-DE-*, BR-HYBRID-FR-*, BR-FX-DE-03 PDF/A downgrade). Defaults to `OTHER`.
+  * Response format follows the same `Accept` header convention as `/api/dd_and_validate`
+    (JSON by default, XML on `application/xml`, HTML on `text/html`)
+  * Test invocation (replace `XXX` with real token):
+    * `curl -X POST -H "Content-Type: application/pdf" -H "X-Token: XXX" --data-binary @invoice.pdf "http://localhost:8080/api/hybrid_validate?country=DE"`
 
 # Configuration
 
@@ -155,8 +168,17 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.1.0 - upcoming
+* Updated to phive-rules 4.3.2 (including new rules for Hungarian invoice format)
+* Updated to ddd 0.8.7
+* Added new API `/api/hybrid_validate` for ZUGFeRD / Factur-X hybrid PDF invoices.
+  The PDF carrier (BR-HYBRID-* + PDF/A-3 via veraPDF) is validated by [kaltblut](https://github.com/phax/kaltblut)
+  and the embedded invoice XML is auto-detected and validated against the matching VESID; both
+  layers are returned in a single `ValidationResultList`. An optional `?country=DE|FR|OTHER`
+  query parameter drives the country-specific BR-HYBRID rules.
+
 v2.0.4 - 2026-05-09
-* Updated to phive-rules 4.3.1 (including new rules for Turkish format)
+* Updated to phive-rules 4.3.1 (including new rules for Turkish invoice format)
 * Updated to ddd 0.8.6
 
 v2.0.3 - 2026-04-10

@@ -168,7 +168,7 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.1.0 - 2026-05-13
+v2.1.0 - 2026-05-14
 * Updated to phive-rules 4.3.2 (including new rules for Hungarian invoice format)
 * Updated to ddd 0.8.7
 * Added new API `/api/hybrid_validate` for ZUGFeRD / Factur-X hybrid PDF invoices.

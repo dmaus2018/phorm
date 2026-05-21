@@ -168,6 +168,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.1.1 - 2026-05-21
+* Updated to phive-rules 4.3.3
+
 v2.1.0 - 2026-05-14
 * Updated to phive-rules 4.3.2 (including new rules for Hungarian invoice format)
 * Updated to ddd 0.8.7

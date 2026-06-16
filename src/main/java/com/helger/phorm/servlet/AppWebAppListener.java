@@ -20,6 +20,8 @@ import java.time.OffsetDateTime;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.helger.base.CGlobal;
@@ -27,12 +29,6 @@ import com.helger.base.exception.InitializationException;
 import com.helger.base.string.StringHelper;
 import com.helger.commons.vendor.VendorInfo;
 import com.helger.datetime.helper.PDTFactory;
-import com.helger.photon.api.APIDescriptor;
-import com.helger.photon.api.APIPath;
-import com.helger.photon.api.IAPIRegistry;
-import com.helger.photon.core.locale.ILocaleManager;
-import com.helger.photon.core.servlet.WebAppListener;
-import com.helger.scope.singleton.SingletonHelper;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppErrorHandler;
 import com.helger.phorm.AppMetaManager;
@@ -43,8 +39,17 @@ import com.helger.phorm.api.ApiPostDetermineDocDetails;
 import com.helger.phorm.api.ApiPostDetermineDocTypeAndValidate;
 import com.helger.phorm.api.ApiPostHybridValidate;
 import com.helger.phorm.api.ApiPostValidate;
+import com.helger.phorm.telemetry.PhormMetrics;
+import com.helger.photon.api.APIDescriptor;
+import com.helger.photon.api.APIPath;
+import com.helger.photon.api.IAPIRegistry;
+import com.helger.photon.core.locale.ILocaleManager;
+import com.helger.photon.core.servlet.WebAppListener;
+import com.helger.scope.singleton.SingletonHelper;
 import com.helger.xservlet.requesttrack.RequestTrackerSettings;
 
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import jakarta.servlet.ServletContext;
 
 /**
@@ -54,7 +59,10 @@ import jakarta.servlet.ServletContext;
  */
 public final class AppWebAppListener extends WebAppListener
 {
+  private static final Logger LOGGER = LoggerFactory.getLogger (AppWebAppListener.class);
+
   private static OffsetDateTime s_aStartupDateTime;
+  private static OpenTelemetrySdk s_aOtelSdk;
 
   @Nullable
   public static OffsetDateTime getStartupDateTime ()
@@ -121,6 +129,43 @@ public final class AppWebAppListener extends WebAppListener
     // This property is by default in the "private-application.properties" file
     if (StringHelper.isEmpty (AppConfig.getAPIRequiredToken ()))
       throw new InitializationException ("The configuration property 'phorm.api.requiredtoken' is not set or empty. This is a required configuration.");
+
+    // OpenTelemetry SDK init. Without this, GlobalOpenTelemetry.get() returns the OTel no-op
+    // and every Telemetry.* call is a cheap no-op all the way down.
+    if (AppConfig.isTelemetryEnabled ())
+    {
+      LOGGER.info ("Initialising OpenTelemetry SDK via autoconfigure");
+      // We manage shutdown ourselves in beforeContextDestroyed
+      s_aOtelSdk = AutoConfiguredOpenTelemetrySdk.builder ()
+                                                 .setResultAsGlobal ()
+                                                 .disableShutdownHook ()
+                                                 .build ()
+                                                 .getOpenTelemetrySdk ();
+      // Touch the metrics holder so the observable gauge gets registered with the SdkMeterProvider
+      PhormMetrics.init ();
+    }
+    else
+    {
+      LOGGER.info ("OpenTelemetry SDK is disabled (set 'phorm.telemetry.enabled=true' to enable)");
+    }
+  }
+
+  @Override
+  protected void beforeContextDestroyed (@NonNull final ServletContext aSC)
+  {
+    if (s_aOtelSdk != null)
+    {
+      LOGGER.info ("Shutting down OpenTelemetry SDK");
+      try
+      {
+        s_aOtelSdk.close ();
+      }
+      catch (final RuntimeException ex)
+      {
+        LOGGER.warn ("Error shutting down OpenTelemetry SDK: " + ex.getMessage ());
+      }
+      s_aOtelSdk = null;
+    }
   }
 
   @Override

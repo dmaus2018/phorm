@@ -30,6 +30,11 @@ import com.helger.ddd.DocumentDetails;
 import com.helger.ddd.DocumentDetailsDeterminator;
 import com.helger.ddd.model.DDDSyntaxList;
 import com.helger.ddd.model.DDDValueProviderList;
+import com.helger.phorm.telemetry.CPhormTelemetry;
+import com.helger.phorm.telemetry.PhormMetrics;
+import com.helger.telemetry.ETelemetrySpanKind;
+import com.helger.telemetry.Telemetry;
+import com.helger.telemetry.TelemetryAttributes;
 
 /**
  * The utility class to configure and access DDD
@@ -61,7 +66,31 @@ public final class PhormDDD
   public static DocumentDetails findDocumentDetails (@NonNull final Element aRootElement,
                                                      @Nullable final Consumer <Element> aEffectiveElementConsumer)
   {
-    // Static instance can be used
-    return DDD.findDocumentDetails (aRootElement, aEffectiveElementConsumer);
+    return Telemetry.withSpan (CPhormTelemetry.SPAN_DDD_DETERMINE, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      aSpan.setAttribute (CPhormTelemetry.ATTR_XML_ROOT_LOCALNAME, aRootElement.getLocalName ())
+           .setAttribute (CPhormTelemetry.ATTR_XML_ROOT_NAMESPACE, aRootElement.getNamespaceURI ());
+
+      final DocumentDetails aDD = DDD.findDocumentDetails (aRootElement, aEffectiveElementConsumer);
+
+      final boolean bMatched = aDD != null;
+      final String sSyntax = aDD != null && aDD.hasSyntaxID () ? aDD.getSyntaxID () : null;
+      aSpan.setAttribute (CPhormTelemetry.ATTR_DDD_MATCHED, bMatched);
+      if (aDD != null)
+      {
+        aSpan.setAttribute (CPhormTelemetry.ATTR_DDD_SYNTAX, sSyntax)
+             .setAttribute (CPhormTelemetry.ATTR_DDD_PROCESS_ID,
+                            aDD.hasProcessID () ? aDD.getProcessID ().getURIEncoded () : null)
+             .setAttribute (CPhormTelemetry.ATTR_DDD_CUSTOMIZATION_ID,
+                            aDD.hasCustomizationID () ? aDD.getCustomizationID () : null)
+             .setAttribute (CPhormTelemetry.ATTR_DDD_VESID, aDD.hasVESID () ? aDD.getVESID () : null);
+      }
+
+      PhormMetrics.DDD_DETERMINATIONS.add (1,
+                                           TelemetryAttributes.builder ()
+                                                              .put ("matched", bMatched)
+                                                              .put ("syntax", sSyntax != null ? sSyntax : "none")
+                                                              .build ());
+      return aDD;
+    });
   }
 }

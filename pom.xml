@@ -63,14 +63,30 @@
   
   <properties>
     <log4j.version>2.26.0</log4j.version>
+    <ph-telemetry.version>1.0.1</ph-telemetry.version>
+    <opentelemetry.version>1.63.0</opentelemetry.version>
   </properties>
-  
+
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>com.helger.commons</groupId>
         <artifactId>ph-commons-parent-pom</artifactId>
         <version>12.3.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.helger.telemetry</groupId>
+        <artifactId>ph-telemetry-parent-pom</artifactId>
+        <version>${ph-telemetry.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -303,6 +319,25 @@
     <dependency>
       <groupId>com.helger.phive.rules</groupId>
       <artifactId>phive-rules-zugferd</artifactId>
+    </dependency>
+
+    <!-- Telemetry: ph-telemetry facade + OTel binding + SDK + OTLP exporter. The WAR ships
+         self-contained so the SDK is initialised in-process by AppWebAppListener. -->
+    <dependency>
+      <groupId>com.helger.telemetry</groupId>
+      <artifactId>ph-telemetry-otel</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-otlp</artifactId>
     </dependency>
 
     <dependency>

@@ -64,12 +64,17 @@ import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.CApp;
 import com.helger.phorm.ddd.PhormDDD;
+import com.helger.phorm.telemetry.CPhormTelemetry;
+import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.phorm.validation.AppValidator;
 import com.helger.phorm.validation.HybridFindingConverter;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.schematron.svrl.SVRLResourceError;
 import com.helger.servlet.request.RequestHelper;
+import com.helger.telemetry.ETelemetrySpanKind;
+import com.helger.telemetry.Telemetry;
+import com.helger.telemetry.TelemetryAttributes;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.microdom.IMicroDocument;
 import com.helger.xml.microdom.IMicroElement;
@@ -92,6 +97,13 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
 
   private static final Logger LOGGER = LoggerFactory.getLogger (ApiPostHybridValidate.class);
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
+
+  @Override
+  @NonNull
+  protected String getEndpointName ()
+  {
+    return "hybrid_validate";
+  }
 
   @Nullable
   private static EZugferdCountry _parseCountry (@Nullable final String sCountry,
@@ -123,27 +135,30 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
                               COUNTER.incrementAndGet () +
                               "] ";
 
-    // Security check
-    if (LOGGER.isDebugEnabled ())
-      LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
-
-    final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-    if (StringHelper.isEmpty (sToken))
-    {
-      LOGGER.error (sLogPrefix + "The specific token header is missing");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+    if (!verifyAuthOrSetForbidden (aRequestScope, aUnifiedResponse, sLogPrefix))
       return;
-    }
-    if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
-    {
-      LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
-      return;
-    }
 
     // Read the payload as PDF bytes
     LOGGER.info (sLogPrefix + "Reading payload as PDF");
-    final byte [] aPayloadBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ().getInputStream ());
+    final byte [] aPayloadBytes = Telemetry.withSpanThrowing (CPhormTelemetry.SPAN_PAYLOAD_READ,
+                                                              ETelemetrySpanKind.INTERNAL,
+                                                              aSpan -> {
+                                                                final byte [] aBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ()
+                                                                                                                              .getInputStream ());
+                                                                final int nLen = aBytes == null ? 0 : aBytes.length;
+                                                                aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
+                                                                                    nLen)
+                                                                     .setAttribute (CPhormTelemetry.ATTR_PAYLOAD_KIND,
+                                                                                    "pdf");
+                                                                PhormMetrics.PAYLOAD_BYTES.record (nLen,
+                                                                                                   TelemetryAttributes.builder ()
+                                                                                                                      .put ("endpoint",
+                                                                                                                            getEndpointName ())
+                                                                                                                      .put ("kind",
+                                                                                                                            "pdf")
+                                                                                                                      .build ());
+                                                                return aBytes;
+                                                              });
     if (aPayloadBytes == null || aPayloadBytes.length == 0)
     {
       final String sErrorMsg = "The request body is empty";
@@ -179,17 +194,54 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
         aHybridValidator.getSettings ().setCountry (eCountry);
 
       // Perform PDF validation
-      final HybridValidationResult aHybridResult;
-      try
-      {
-        aHybridResult = aHybridValidator.validate (aHybridSource);
-      }
-      catch (final IOException ex)
-      {
-        // Fatal: cannot proceed without parsing the PDF
-        LOGGER.error (sLogPrefix + "Failed to parse PDF for hybrid validation", ex);
-        throw new IllegalStateException ("Failed to parse PDF for hybrid validation: " + ex.getMessage (), ex);
-      }
+      final var aHybridResult = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_VALIDATE,
+                                                    ETelemetrySpanKind.INTERNAL,
+                                                    aSpan -> {
+                                                      aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
+                                                                          aPayloadBytes.length);
+                                                      if (eCountry != null)
+                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_COUNTRY,
+                                                                            eCountry.name ());
+
+                                                      try
+                                                      {
+                                                        final HybridValidationResult aRes = aHybridValidator.validate (aHybridSource);
+                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_LAYERS,
+                                                                            aRes.getAllLayers ().size ());
+                                                        PhormMetrics.KALTBLUT_RUNS.add (1,
+                                                                                        TelemetryAttributes.builder ()
+                                                                                                           .put ("outcome",
+                                                                                                                 "ok")
+                                                                                                           .put ("country",
+                                                                                                                 eCountry !=
+                                                                                                                            null ? eCountry.name ()
+                                                                                                                                 : "none")
+                                                                                                           .build ());
+                                                        return aRes;
+                                                      }
+                                                      catch (final IOException ex)
+                                                      {
+                                                        PhormMetrics.KALTBLUT_RUNS.add (1,
+                                                                                        TelemetryAttributes.builder ()
+                                                                                                           .put ("outcome",
+                                                                                                                 "parse_fail")
+                                                                                                           .put ("country",
+                                                                                                                 eCountry !=
+                                                                                                                            null ? eCountry.name ()
+                                                                                                                                 : "none")
+                                                                                                           .build ());
+                                                        /*
+                                                         * Fatal: cannot proceed without parsing the
+                                                         * PDF
+                                                         */
+                                                        LOGGER.error (sLogPrefix +
+                                                                      "Failed to parse PDF for hybrid validation",
+                                                                      ex);
+                                                        throw new IllegalStateException ("Failed to parse PDF for hybrid validation: " +
+                                                                                         ex.getMessage (),
+                                                                                         ex);
+                                                      }
+                                                    });
 
       // Convert to our VRL
       final ValidationResultList aVRL = new ValidationResultList (ValidationSourceBinary.create (null, aPayloadBytes));
@@ -197,15 +249,42 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
         aVRL.add (HybridFindingConverter.toValidationResult (aLayer));
 
       // 2) Try to extract and validate the embedded XML
-      byte [] aXmlBytes = null;
-      try
-      {
-        aXmlBytes = HybridExtractor.extractInvoiceXml (aHybridSource);
-      }
-      catch (final IOException ex)
-      {
-        LOGGER.warn (sLogPrefix + "Could not extract invoice XML: " + ex.getMessage ());
-      }
+
+      // Extract the XML from the PDF
+      final byte [] aXmlBytes = Telemetry.withSpan (CPhormTelemetry.SPAN_KALTBLUT_EXTRACT_XML,
+                                                    ETelemetrySpanKind.INTERNAL,
+                                                    aSpan -> {
+                                                      try
+                                                      {
+                                                        final byte [] aBytes = HybridExtractor.extractInvoiceXml (aHybridSource);
+                                                        final int nLen = aBytes == null ? 0 : aBytes.length;
+                                                        aSpan.setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_EXTRACTED,
+                                                                            nLen > 0)
+                                                             .setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_BYTES,
+                                                                            nLen);
+                                                        if (nLen > 0)
+                                                        {
+                                                          PhormMetrics.KALTBLUT_EMBEDDED_XML_BYTES.record (nLen,
+                                                                                                           TelemetryAttributes.builder ()
+                                                                                                                              .put ("country",
+                                                                                                                                    eCountry !=
+                                                                                                                                               null ? eCountry.name ()
+                                                                                                                                                    : "none")
+                                                                                                                              .build ());
+                                                        }
+                                                        return aBytes;
+                                                      }
+                                                      catch (final IOException ex)
+                                                      {
+                                                        aSpan.recordException (ex)
+                                                             .setAttribute (CPhormTelemetry.ATTR_HYBRID_XML_EXTRACTED,
+                                                                            false);
+                                                        LOGGER.warn (sLogPrefix +
+                                                                     "Could not extract invoice XML: " +
+                                                                     ex.getMessage ());
+                                                        return null;
+                                                      }
+                                                    });
 
       if (aXmlBytes == null || aXmlBytes.length == 0)
       {
@@ -233,9 +312,8 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
           {
             aWrappedDD.set (aDD);
 
-            final DVRCoordinate aVESID = DVRCoordinate.parseOrNull (aDD.getVESID ());
-            final IValidationExecutorSet <IValidationSourceXML> aVES = aVESID == null ? null : AppValidator
-                                                                                                           .getVESOrNull (aVESID);
+            final var aVESID = DVRCoordinate.parseOrNull (aDD.getVESID ());
+            final var aVES = aVESID == null ? null : AppValidator.getVESOrNull (aVESID);
             if (aVES == null)
             {
               LOGGER.warn (sLogPrefix + "VESID '" + aDD.getVESID () + "' could not be resolved");
@@ -251,7 +329,7 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
               LOGGER.info (sLogPrefix + "Performing XML validation using VESID '" + aVESID.getAsSingleID () + "'");
 
               // Run XML validation
-              final ValidationResultList aXmlVRL = AppValidator.validate (aVES, aValSrc, aDisplayLocale);
+              final ValidationResultList aXmlVRL = AppValidator.validate (aVES, aValSrc, aDisplayLocale, "hybrid");
               for (final ValidationResult aXmlLayer : aXmlVRL)
                 aVRL.add (aXmlLayer);
             }
@@ -328,9 +406,9 @@ public class ApiPostHybridValidate extends AbstractAPIInvoker
         // Perform conversion
         final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
                                                                        .ves (aWrappedVES.get ())
-                                                                       .errorTestExtractor ( (error,
-                                                                                              locale) -> error instanceof final SVRLResourceError aSvrlError ? aSvrlError.getTest ()
-                                                                                                                                                             : null)
+                                                                       .errorTestExtractor ((error,
+                                                                                             locale) -> error instanceof final SVRLResourceError aSvrlError ? aSvrlError.getTest ()
+                                                                                                                                                            : null)
                                                                        .sourceData (null)
                                                                        .createHtml (aWrappedVRL.get (),
                                                                                     new XMLWriterSettings ().setIndent (EXMLSerializeIndent.INDENT_AND_ALIGN));

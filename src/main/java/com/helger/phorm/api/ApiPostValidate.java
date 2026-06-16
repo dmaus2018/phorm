@@ -29,7 +29,6 @@ import org.w3c.dom.Document;
 
 import com.helger.annotation.Nonempty;
 import com.helger.base.io.stream.StreamHelper;
-import com.helger.base.string.StringHelper;
 import com.helger.base.wrapper.Wrapper;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.http.CHttp;
@@ -48,12 +47,17 @@ import com.helger.phive.xml.source.IValidationSourceXML;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.CApp;
+import com.helger.phorm.telemetry.CPhormTelemetry;
+import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.phorm.validation.AppValidator;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.schematron.SchematronDebug;
 import com.helger.schematron.svrl.SVRLResourceError;
 import com.helger.servlet.request.RequestHelper;
+import com.helger.telemetry.ETelemetrySpanKind;
+import com.helger.telemetry.Telemetry;
+import com.helger.telemetry.TelemetryAttributes;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.microdom.IMicroDocument;
 import com.helger.xml.microdom.IMicroElement;
@@ -74,6 +78,13 @@ public class ApiPostValidate extends AbstractAPIInvoker
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
 
   @Override
+  @NonNull
+  protected String getEndpointName ()
+  {
+    return "validate";
+  }
+
+  @Override
   public void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
                          @NonNull @Nonempty final String sPath,
                          @NonNull final Map <String, String> aPathVariables,
@@ -83,28 +94,42 @@ public class ApiPostValidate extends AbstractAPIInvoker
     aUnifiedResponse.disableCaching ();
     final String sLogPrefix = "[VALIDATE-" + AppVersion.getVersionNumber () + "-" + COUNTER.incrementAndGet () + "] ";
 
-    // Security check
-    if (LOGGER.isDebugEnabled ())
-      LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
+    if (!verifyAuthOrSetForbidden (aRequestScope, aUnifiedResponse, sLogPrefix))
+      return;
 
-    final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-    if (StringHelper.isEmpty (sToken))
-    {
-      LOGGER.error (sLogPrefix + "The specific token header is missing");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
-      return;
-    }
-    if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
-    {
-      LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
-      return;
-    }
+    // Read the payload from the request
+    LOGGER.info (sLogPrefix + "Trying to read payload as XML");
+    final byte [] aPayloadBytes = Telemetry.withSpanThrowing (CPhormTelemetry.SPAN_PAYLOAD_READ,
+                                                              ETelemetrySpanKind.INTERNAL,
+                                                              aSpan -> {
+                                                                final byte [] aBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ()
+                                                                                                                              .getInputStream ());
+                                                                final int nLen = aBytes == null ? 0 : aBytes.length;
+                                                                aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
+                                                                                    nLen)
+                                                                     .setAttribute (CPhormTelemetry.ATTR_PAYLOAD_KIND,
+                                                                                    "xml");
+                                                                PhormMetrics.PAYLOAD_BYTES.record (nLen,
+                                                                                                   TelemetryAttributes.builder ()
+                                                                                                                      .put ("endpoint",
+                                                                                                                            getEndpointName ())
+                                                                                                                      .put ("kind",
+                                                                                                                            "xml")
+                                                                                                                      .build ());
+                                                                return aBytes;
+                                                              });
 
     // Read the payload as XML
-    LOGGER.info (sLogPrefix + "Trying to read payload as XML");
-    final byte [] aPayloadBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ().getInputStream ());
-    final Document aDoc = DOMReader.readXMLDOM (aPayloadBytes);
+    final Document aDoc = Telemetry.withSpan (CPhormTelemetry.SPAN_XML_PARSE, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      final Document ret = DOMReader.readXMLDOM (aPayloadBytes);
+      if (ret != null && ret.getDocumentElement () != null)
+      {
+        aSpan.setAttribute (CPhormTelemetry.ATTR_XML_ROOT_LOCALNAME, ret.getDocumentElement ().getLocalName ())
+             .setAttribute (CPhormTelemetry.ATTR_XML_ROOT_NAMESPACE, ret.getDocumentElement ().getNamespaceURI ());
+      }
+      return ret;
+    });
+
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
       final String sErrorMsg = "Failed to read the message body as XML";
@@ -122,7 +147,22 @@ public class ApiPostValidate extends AbstractAPIInvoker
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
-    final IValidationExecutorSet <IValidationSourceXML> aVES = AppValidator.getVES (aVESID);
+
+    // Resolve VES
+    final var aVES = Telemetry.withSpan (CPhormTelemetry.SPAN_VESID_RESOLVE, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      aSpan.setAttribute (CPhormTelemetry.ATTR_VESID, aVESID.getAsSingleID ());
+      final IValidationExecutorSet <IValidationSourceXML> aResolved = AppValidator.getVESOrNull (aVESID);
+      final boolean bResolved = aResolved != null;
+      final boolean bDeprecated = bResolved && aResolved.getStatus ().isDeprecated ();
+      aSpan.setAttribute (CPhormTelemetry.ATTR_VESID_RESOLVED, bResolved)
+           .setAttribute (CPhormTelemetry.ATTR_VESID_DEPRECATED, bDeprecated);
+      PhormMetrics.VESID_RESOLUTIONS.add (1,
+                                          TelemetryAttributes.builder ()
+                                                             .put ("resolved", bResolved)
+                                                             .put ("deprecated", bDeprecated)
+                                                             .build ());
+      return aResolved;
+    });
     if (aVES == null)
     {
       final String sErrorMsg = "The VESID '" + sVESID + "' could not be resolved.";
@@ -145,7 +185,7 @@ public class ApiPostValidate extends AbstractAPIInvoker
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
       // Perform validation
-      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aDoc, aDisplayLocale);
+      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aDoc, aDisplayLocale, "direct");
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())
@@ -205,9 +245,9 @@ public class ApiPostValidate extends AbstractAPIInvoker
         // Perform conversion
         final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
                                                                        .ves (aVES)
-                                                                       .errorTestExtractor ( (error,
-                                                                                              locale) -> error instanceof final SVRLResourceError aSvrlError ? aSvrlError.getTest ()
-                                                                                                                                                             : null)
+                                                                       .errorTestExtractor ((error,
+                                                                                             locale) -> error instanceof final SVRLResourceError aSvrlError ? aSvrlError.getTest ()
+                                                                                                                                                            : null)
                                                                        .sourceData (bEmitValidationSourceContent ? new String (aPayloadBytes,
                                                                                                                                StandardCharsets.UTF_8)
                                                                                                                  : null)

@@ -30,6 +30,11 @@ import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.api.executorset.ValidationExecutorSetRegistry;
 import com.helger.phive.api.result.ValidationResultList;
 import com.helger.phive.api.validity.IValidityDeterminator;
+import com.helger.phorm.telemetry.CPhormTelemetry;
+import com.helger.phorm.telemetry.PhormMetrics;
+import com.helger.telemetry.ETelemetrySpanKind;
+import com.helger.telemetry.Telemetry;
+import com.helger.telemetry.TelemetryAttributes;
 import com.helger.phive.cii.CIIValidation;
 import com.helger.phive.ciuspt.CIUS_PTValidation;
 import com.helger.phive.ciusro.CIUS_ROValidation;
@@ -148,17 +153,60 @@ public class AppValidator
   @NonNull
   public static ValidationResultList validate (@NonNull final IValidationExecutorSet <IValidationSourceXML> aVES,
                                                @NonNull final Node aXmlNode,
-                                               @NonNull final Locale aDisplayLocale)
+                                               @NonNull final Locale aDisplayLocale,
+                                               @NonNull final String sVia)
   {
-    return validate (aVES, ValidationSourceXML.create (null, aXmlNode), aDisplayLocale);
+    return validate (aVES, ValidationSourceXML.create (null, aXmlNode), aDisplayLocale, sVia);
   }
 
   @NonNull
   public static ValidationResultList validate (@NonNull final IValidationExecutorSet <IValidationSourceXML> aVES,
                                                @NonNull final IValidationSourceXML aSrc,
-                                               @NonNull final Locale aDisplayLocale)
+                                               @NonNull final Locale aDisplayLocale,
+                                               @NonNull final String sVia)
   {
-    // Start validation
-    return new ValidationExecutionManager <> (VD, aVES).executeValidation (aSrc, aDisplayLocale);
+    final String sVESID = aVES.getID ().getAsSingleID ();
+    final String sVESName = aVES.getDisplayName ();
+
+    return Telemetry.withSpan (CPhormTelemetry.SPAN_PHIVE_VALIDATE, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      aSpan.setAttribute (CPhormTelemetry.ATTR_VESID, sVESID).setAttribute (CPhormTelemetry.ATTR_VESID_NAME, sVESName);
+
+      final ValidationResultList aVRL = new ValidationExecutionManager <> (VD, aVES).executeValidation (aSrc,
+                                                                                                        aDisplayLocale);
+
+      final int nErrors = aVRL.getAllErrors ().size ();
+      final int nFailures = aVRL.getAllFailures ().size ();
+      final int nWarnings = nFailures - nErrors;
+      final boolean bValid = aVRL.getOverallValidity ().isValid ();
+      final long nDurationMs = aVRL.hasValidationDuration () ? aVRL.getValidationDuration ().toMillis () : 0L;
+
+      aSpan.setAttribute (CPhormTelemetry.ATTR_VALIDATION_LAYERS, aVRL.size ())
+           .setAttribute (CPhormTelemetry.ATTR_VALIDATION_ERRORS, nErrors)
+           .setAttribute (CPhormTelemetry.ATTR_VALIDATION_WARNINGS, nWarnings)
+           .setAttribute (CPhormTelemetry.ATTR_VALIDATION_VALID, bValid)
+           .setAttribute (CPhormTelemetry.ATTR_VALIDATION_DURATION_MS, nDurationMs);
+
+      PhormMetrics.VALIDATION_RUNS.add (1,
+                                        TelemetryAttributes.builder ()
+                                                           .put ("vesid", sVESID)
+                                                           .put ("valid", bValid)
+                                                           .put ("via", sVia)
+                                                           .build ());
+      PhormMetrics.VALIDATION_DURATION.record (nDurationMs,
+                                               TelemetryAttributes.builder ().put ("vesid", sVESID).build ());
+      if (nErrors > 0)
+        PhormMetrics.VALIDATION_FINDINGS.add (nErrors,
+                                              TelemetryAttributes.builder ()
+                                                                 .put ("vesid", sVESID)
+                                                                 .put ("severity", "error")
+                                                                 .build ());
+      if (nWarnings > 0)
+        PhormMetrics.VALIDATION_FINDINGS.add (nWarnings,
+                                              TelemetryAttributes.builder ()
+                                                                 .put ("vesid", sVESID)
+                                                                 .put ("severity", "warn")
+                                                                 .build ());
+      return aVRL;
+    });
   }
 }

@@ -103,4 +103,9 @@ public final class AppConfig
   {
     return _getAsBooleanWithFallback ("phorm.api.response.log.payload", "valsvc.api.response.log.payload", false);
   }
+
+  public static boolean isTelemetryEnabled ()
+  {
+    return getConfig ().getAsBoolean ("phorm.telemetry.enabled", false);
+  }
 }

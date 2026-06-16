@@ -30,7 +30,6 @@ import org.w3c.dom.Element;
 
 import com.helger.annotation.Nonempty;
 import com.helger.base.io.stream.StreamHelper;
-import com.helger.base.string.StringHelper;
 import com.helger.base.wrapper.Wrapper;
 import com.helger.ddd.DocumentDetails;
 import com.helger.diver.api.coord.DVRCoordinate;
@@ -52,11 +51,16 @@ import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.CApp;
 import com.helger.phorm.ddd.PhormDDD;
+import com.helger.phorm.telemetry.CPhormTelemetry;
+import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.phorm.validation.AppValidator;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.schematron.svrl.SVRLResourceError;
 import com.helger.servlet.request.RequestHelper;
+import com.helger.telemetry.ETelemetrySpanKind;
+import com.helger.telemetry.Telemetry;
+import com.helger.telemetry.TelemetryAttributes;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.microdom.IMicroDocument;
 import com.helger.xml.microdom.IMicroElement;
@@ -77,6 +81,13 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
 
   @Override
+  @NonNull
+  protected String getEndpointName ()
+  {
+    return "dd_and_validate";
+  }
+
+  @Override
   public void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
                          @NonNull @Nonempty final String sPath,
                          @NonNull final Map <String, String> aPathVariables,
@@ -90,28 +101,41 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
                               COUNTER.incrementAndGet () +
                               "] ";
 
-    // Security check
-    if (LOGGER.isDebugEnabled ())
-      LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
-
-    final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-    if (StringHelper.isEmpty (sToken))
-    {
-      LOGGER.error (sLogPrefix + "The specific token header is missing");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+    if (!verifyAuthOrSetForbidden (aRequestScope, aUnifiedResponse, sLogPrefix))
       return;
-    }
-    if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
-    {
-      LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
-      aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
-      return;
-    }
 
     // Read the payload as XML
     LOGGER.info (sLogPrefix + "Trying to read payload as XML");
-    final byte [] aPayloadBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ().getInputStream ());
-    final Document aDoc = DOMReader.readXMLDOM (aPayloadBytes);
+    final byte [] aPayloadBytes = Telemetry.withSpanThrowing (CPhormTelemetry.SPAN_PAYLOAD_READ,
+                                                              ETelemetrySpanKind.INTERNAL,
+                                                              aSpan -> {
+                                                                final byte [] aBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ()
+                                                                                                                              .getInputStream ());
+                                                                final int nLen = aBytes == null ? 0 : aBytes.length;
+                                                                aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
+                                                                                    nLen)
+                                                                     .setAttribute (CPhormTelemetry.ATTR_PAYLOAD_KIND,
+                                                                                    "xml");
+                                                                PhormMetrics.PAYLOAD_BYTES.record (nLen,
+                                                                                                   TelemetryAttributes.builder ()
+                                                                                                                      .put ("endpoint",
+                                                                                                                            getEndpointName ())
+                                                                                                                      .put ("kind",
+                                                                                                                            "xml")
+                                                                                                                      .build ());
+                                                                return aBytes;
+                                                              });
+
+    final Document aDoc = Telemetry.withSpan (CPhormTelemetry.SPAN_XML_PARSE, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      final Document aD = DOMReader.readXMLDOM (aPayloadBytes);
+      if (aD != null && aD.getDocumentElement () != null)
+      {
+        aSpan.setAttribute (CPhormTelemetry.ATTR_XML_ROOT_LOCALNAME, aD.getDocumentElement ().getLocalName ())
+             .setAttribute (CPhormTelemetry.ATTR_XML_ROOT_NAMESPACE, aD.getDocumentElement ().getNamespaceURI ());
+      }
+      return aD;
+    });
+
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
       final String sErrorMsg = "Failed to read the message body as XML";
@@ -131,6 +155,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
+
     // If the payload was an SBDH, validate the inner element instead
     final IValidationSourceXML aValSrc = aInnerElement.isSet () ? ValidationSourceXML.createPartial (null,
                                                                                                      aInnerElement.get ())
@@ -145,7 +170,21 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_BAD_REQUEST);
       return;
     }
-    final IValidationExecutorSet <IValidationSourceXML> aVES = AppValidator.getVES (aVESID);
+
+    final var aVES = Telemetry.withSpan (CPhormTelemetry.SPAN_VESID_RESOLVE, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      aSpan.setAttribute (CPhormTelemetry.ATTR_VESID, aVESID.getAsSingleID ());
+      final IValidationExecutorSet <IValidationSourceXML> aResolved = AppValidator.getVESOrNull (aVESID);
+      final boolean bResolved = aResolved != null;
+      final boolean bDeprecated = bResolved && aResolved.getStatus ().isDeprecated ();
+      aSpan.setAttribute (CPhormTelemetry.ATTR_VESID_RESOLVED, bResolved)
+           .setAttribute (CPhormTelemetry.ATTR_VESID_DEPRECATED, bDeprecated);
+      PhormMetrics.VESID_RESOLUTIONS.add (1,
+                                          TelemetryAttributes.builder ()
+                                                             .put ("resolved", bResolved)
+                                                             .put ("deprecated", bDeprecated)
+                                                             .build ());
+      return aResolved;
+    });
     if (aVES == null)
     {
       final String sErrorMsg = "The VESID '" + sVESID + "' could not be resolved.";
@@ -162,7 +201,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
       // Perform validation
-      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aValSrc, aDisplayLocale);
+      final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aValSrc, aDisplayLocale, "dd");
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())
@@ -223,9 +262,9 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
         // Perform conversion
         final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
                                                                        .ves (aVES)
-                                                                       .errorTestExtractor ( (error,
-                                                                                              locale) -> error instanceof final SVRLResourceError aSvrlError ? aSvrlError.getTest ()
-                                                                                                                                                             : null)
+                                                                       .errorTestExtractor ((error,
+                                                                                             locale) -> error instanceof final SVRLResourceError aSvrlError ? aSvrlError.getTest ()
+                                                                                                                                                            : null)
                                                                        .sourceData (bEmitValidationSourceContent ? new String (aPayloadBytes,
                                                                                                                                StandardCharsets.UTF_8)
                                                                                                                  : null)

@@ -97,6 +97,33 @@ It supports the following settings:
 * **`phorm.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it. The development default is `phorm-dev-token`.
 * **`phorm.api.response.onfailure.http400`**: a flag to indicate, whether the API should return HTTP 400 (Bad Request) on failed validations or not. The default is `true` for backwards compatibility reasons.
 * **`phorm.api.response.log.payload`**: a flag to indicate, whether the validation response should be logged in the console or not. The default is `false`.
+* **`phorm.telemetry.enabled`**: a flag that enables in-process OpenTelemetry SDK initialisation at startup so spans and metrics are exported. The default is `false` — when disabled, every telemetry call inside Phorm collapses to a cheap no-op and no OTel network connection is opened. Set to `true` to opt in.
+
+## OpenTelemetry
+
+When `phorm.telemetry.enabled=true`, Phorm initialises the OpenTelemetry SDK once at startup via `AutoConfiguredOpenTelemetrySdk` (no Java agent required). Configure exporters and resource attributes with the standard OTel environment variables (or `-D` system properties) — Phorm itself adds nothing on top:
+
+| Variable | Purpose |
+|---|---|
+| `OTEL_SERVICE_NAME` | service.name resource attribute, e.g. `phorm` |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint, e.g. `http://collector:4317` |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `grpc` (default) or `http/protobuf` |
+| `OTEL_TRACES_EXPORTER` / `OTEL_METRICS_EXPORTER` | `otlp` (default), `none` to disable per signal, etc. |
+| `OTEL_RESOURCE_ATTRIBUTES` | extra resource attributes, e.g. `deployment.environment=prod` |
+
+See the [OpenTelemetry SDK autoconfigure docs](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure) for the full list. Span names are documented in `com.helger.phorm.telemetry.CPhormTelemetry` (`phorm.api.*`, `phorm.auth.check`, `phorm.payload.read`, `phorm.xml.parse`, `phorm.ddd.determine`, `phorm.vesid.resolve`, `phorm.phive.validate`, `phorm.kaltblut.*`); metric names are in `com.helger.phorm.telemetry.PhormMetrics` (`phorm.requests.received`, `phorm.validation.runs`, `phorm.validation.duration`, `phorm.validation.findings`, `phorm.payload.bytes`, `phorm.ddd.determinations`, `phorm.vesid.resolutions`, `phorm.kaltblut.*`, `phorm.ves.registry.size`).
+
+For testing purposes use e.g. those values:
+```
+OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
+OTEL_EXPORTER_OTLP_PROTOCOL="grpc"
+OTEL_SERVICE_NAME="phorm"
+OTEL_RESOURCE_ATTRIBUTES="service.namespace=com.helger,service.version=1.0.0,deployment.environment=local"
+OTEL_TRACES_EXPORTER="otlp"
+OTEL_METRICS_EXPORTER="otlp"
+OTEL_LOGS_EXPORTER="otlp"
+```
+
 
 # Building
 
@@ -169,6 +196,9 @@ As an alternative to using `private-application.properties` you may also conside
    see https://github.com/phax/ph-commons/wiki/ph-config for details.
 
 # News and noteworthy
+
+v2.1.4 - work in progress
+* Added OpenTelemetry support
 
 v2.1.3 - 2026-06-15
 * Updated to phive-rules 4.3.8

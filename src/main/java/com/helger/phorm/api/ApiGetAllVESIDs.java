@@ -24,9 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.helger.annotation.Nonempty;
-import com.helger.base.string.StringHelper;
 import com.helger.diver.api.coord.DVRCoordinate;
-import com.helger.http.CHttp;
 import com.helger.json.IJsonArray;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonArray;
@@ -35,10 +33,10 @@ import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
 import com.helger.phive.xml.source.IValidationSourceXML;
-import com.helger.photon.api.IAPIDescriptor;
-import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.validation.AppValidator;
+import com.helger.photon.api.IAPIDescriptor;
+import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 
 /**
@@ -51,6 +49,13 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
   private static final Logger LOGGER = LoggerFactory.getLogger (ApiGetAllVESIDs.class);
 
   @Override
+  @NonNull
+  protected String getEndpointName ()
+  {
+    return "get_vesids";
+  }
+
+  @Override
   public void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
                          @NonNull @Nonempty final String sPath,
                          @NonNull final Map <String, String> aPathVariables,
@@ -61,25 +66,8 @@ public class ApiGetAllVESIDs extends AbstractAPIInvoker
     final String sLogPrefix = "[GetAllVesIDs] ";
 
     if (false)
-    {
-      // Security check
-      if (LOGGER.isDebugEnabled ())
-        LOGGER.debug (sLogPrefix + "Verifying specific HTTP header with token");
-
-      final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-      if (StringHelper.isEmpty (sToken))
-      {
-        LOGGER.error (sLogPrefix + "The specific token header is missing");
-        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
+      if (!verifyAuthOrSetForbidden (aRequestScope, aUnifiedResponse, sLogPrefix))
         return;
-      }
-      if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
-      {
-        LOGGER.error (sLogPrefix + "The specified token value does not match the configured required token");
-        aUnifiedResponse.setStatus (CHttp.HTTP_FORBIDDEN);
-        return;
-      }
-    }
 
     final IJsonObject aJson = new JsonObject ();
 

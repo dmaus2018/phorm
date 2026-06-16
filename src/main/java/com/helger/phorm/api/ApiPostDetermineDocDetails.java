@@ -26,9 +26,8 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.helger.annotation.Nonempty;
-import com.helger.base.string.StringHelper;
+import com.helger.base.io.stream.StreamHelper;
 import com.helger.ddd.DocumentDetails;
-import com.helger.http.CHttp;
 import com.helger.http.header.specific.AcceptMimeTypeList;
 import com.helger.json.IJsonObject;
 import com.helger.json.serialize.JsonWriter;
@@ -37,9 +36,14 @@ import com.helger.mime.CMimeType;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
 import com.helger.phorm.ddd.PhormDDD;
+import com.helger.phorm.telemetry.CPhormTelemetry;
+import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
 import com.helger.servlet.request.RequestHelper;
+import com.helger.telemetry.ETelemetrySpanKind;
+import com.helger.telemetry.Telemetry;
+import com.helger.telemetry.TelemetryAttributes;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xml.microdom.IMicroElement;
 import com.helger.xml.microdom.MicroElement;
@@ -59,6 +63,13 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
 
   @Override
+  @NonNull
+  protected String getEndpointName ()
+  {
+    return "determinedoctype";
+  }
+
+  @Override
   public void invokeAPI (@NonNull final IAPIDescriptor aAPIDescriptor,
                          @NonNull @Nonempty final String sPath,
                          @NonNull final Map <String, String> aPathVariables,
@@ -68,26 +79,42 @@ public final class ApiPostDetermineDocDetails extends AbstractAPIInvoker
     aUnifiedResponse.disableCaching ();
     final String sLogPrefix = "[DETERMINE-" + AppVersion.getVersionNumber () + "-" + COUNTER.incrementAndGet () + "] ";
 
-    // Check request validity
-    final String sToken = aRequestScope.headers ().getFirstHeaderValue (HEADER_X_TOKEN);
-    if (StringHelper.isEmpty (sToken))
-    {
-      final String sErrorMsg = "The specific token header is missing";
-      LOGGER.error (sLogPrefix + sErrorMsg);
-      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_FORBIDDEN);
+    if (!verifyAuthOrSetForbidden (aRequestScope, aUnifiedResponse, sLogPrefix))
       return;
-    }
-    if (!sToken.equals (AppConfig.getAPIRequiredToken ()))
-    {
-      final String sErrorMsg = "The specified token value does not match the configured required token";
-      LOGGER.error (sLogPrefix + sErrorMsg);
-      aUnifiedResponse.text (sErrorMsg).setStatus (CHttp.HTTP_FORBIDDEN);
-      return;
-    }
+
+    // Read the payload from request
+    LOGGER.info (sLogPrefix + "Trying to read payload as XML");
+    final byte [] aPayloadBytes = Telemetry.withSpanThrowing (CPhormTelemetry.SPAN_PAYLOAD_READ,
+                                                              ETelemetrySpanKind.INTERNAL,
+                                                              aSpan -> {
+                                                                final byte [] aBytes = StreamHelper.getAllBytes (aRequestScope.getRequest ()
+                                                                                                                              .getInputStream ());
+                                                                final int nLen = aBytes == null ? 0 : aBytes.length;
+                                                                aSpan.setAttribute (CPhormTelemetry.ATTR_PAYLOAD_SIZE_BYTES,
+                                                                                    nLen)
+                                                                     .setAttribute (CPhormTelemetry.ATTR_PAYLOAD_KIND,
+                                                                                    "xml");
+                                                                PhormMetrics.PAYLOAD_BYTES.record (nLen,
+                                                                                                   TelemetryAttributes.builder ()
+                                                                                                                      .put ("endpoint",
+                                                                                                                            getEndpointName ())
+                                                                                                                      .put ("kind",
+                                                                                                                            "xml")
+                                                                                                                      .build ());
+                                                                return aBytes;
+                                                              });
 
     // Read the payload as XML
-    LOGGER.info (sLogPrefix + "Trying to read payload as XML");
-    final Document aDoc = DOMReader.readXMLDOM (aRequestScope.getRequest ().getInputStream ());
+    final Document aDoc = Telemetry.withSpan (CPhormTelemetry.SPAN_XML_PARSE, ETelemetrySpanKind.INTERNAL, aSpan -> {
+      final Document aD = DOMReader.readXMLDOM (aPayloadBytes);
+      if (aD != null && aD.getDocumentElement () != null)
+      {
+        aSpan.setAttribute (CPhormTelemetry.ATTR_XML_ROOT_LOCALNAME, aD.getDocumentElement ().getLocalName ())
+             .setAttribute (CPhormTelemetry.ATTR_XML_ROOT_NAMESPACE, aD.getDocumentElement ().getNamespaceURI ());
+      }
+      return aD;
+    });
+
     if (aDoc == null || aDoc.getDocumentElement () == null)
     {
       final String sErrorMsg = "Failed to read the message body as XML";

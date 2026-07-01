@@ -68,6 +68,7 @@ public final class CPhormTelemetry
   public static final String ATTR_DDD_PROCESS_ID = "phorm.ddd.process_id";
   public static final String ATTR_DDD_CUSTOMIZATION_ID = "phorm.ddd.customization_id";
   public static final String ATTR_DDD_VESID = "phorm.ddd.vesid";
+  public static final String ATTR_DDD_UNWRAPPED = "phorm.ddd.unwrapped";
 
   public static final String ATTR_VESID = "phorm.vesid";
   public static final String ATTR_VESID_NAME = "phorm.vesid.name";

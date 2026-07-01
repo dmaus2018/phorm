@@ -25,9 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import com.helger.annotation.concurrent.Immutable;
+import com.helger.base.numeric.mutable.MutableBoolean;
 import com.helger.ddd.DDDVersion;
 import com.helger.ddd.DocumentDetails;
 import com.helger.ddd.DocumentDetailsDeterminator;
+import com.helger.ddd.IDDDDocumentUnwrapper;
+import com.helger.ddd.IDDDDocumentUnwrappingCallback;
 import com.helger.ddd.model.DDDSyntaxList;
 import com.helger.ddd.model.DDDValueProviderList;
 import com.helger.phorm.telemetry.CPhormTelemetry;
@@ -70,7 +73,23 @@ public final class PhormDDD
       aSpan.setAttribute (CPhormTelemetry.ATTR_XML_ROOT_LOCALNAME, aRootElement.getLocalName ())
            .setAttribute (CPhormTelemetry.ATTR_XML_ROOT_NAMESPACE, aRootElement.getNamespaceURI ());
 
-      final DocumentDetails aDD = DDD.findDocumentDetails (aRootElement, aEffectiveElementConsumer);
+      final MutableBoolean aWasUnwrapped = new MutableBoolean (false);
+      final IDDDDocumentUnwrappingCallback aUnwrappingCallback = (@NonNull final IDDDDocumentUnwrapper aUnwrapper,
+                                                                  @NonNull final Element aOuterElement,
+                                                                  @NonNull final Element aInnerElement) -> {
+        // Remember that it was unwrapped
+        aWasUnwrapped.set (true);
+
+        // Was it an SBD?
+        // if (DDDDocumentUnwrapperSBDH.WRAPPING_TYPE.equals (aUnwrapper.getWrappingType ()))
+        // {
+        // // Parse as SBD
+        // final StandardBusinessDocument aSBD = new SBDMarshaller ().read (aOuterElement);
+        // }
+      };
+      final DocumentDetails aDD = DDD.findDocumentDetails (aRootElement,
+                                                           aUnwrappingCallback,
+                                                           aEffectiveElementConsumer);
 
       final boolean bMatched = aDD != null;
       final String sSyntax = aDD != null && aDD.hasSyntaxID () ? aDD.getSyntaxID () : null;
@@ -82,7 +101,8 @@ public final class PhormDDD
                             aDD.hasProcessID () ? aDD.getProcessID ().getURIEncoded () : null)
              .setAttribute (CPhormTelemetry.ATTR_DDD_CUSTOMIZATION_ID,
                             aDD.hasCustomizationID () ? aDD.getCustomizationID () : null)
-             .setAttribute (CPhormTelemetry.ATTR_DDD_VESID, aDD.hasVESID () ? aDD.getVESID () : null);
+             .setAttribute (CPhormTelemetry.ATTR_DDD_VESID, aDD.hasVESID () ? aDD.getVESID () : null)
+             .setAttribute (CPhormTelemetry.ATTR_DDD_UNWRAPPED, aWasUnwrapped.booleanValue ());
       }
 
       PhormMetrics.DDD_DETERMINATIONS.add (1,

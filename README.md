@@ -197,7 +197,7 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.1.4 - work in progress
+v2.1.4 - 2026-07-01
 * Added OpenTelemetry support
 
 v2.1.3 - 2026-06-15

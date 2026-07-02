@@ -18,30 +18,53 @@ package com.helger.phorm.api;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.unece.cefact.namespaces.sbdh.StandardBusinessDocument;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.helger.annotation.Nonempty;
 import com.helger.base.io.stream.StreamHelper;
+import com.helger.base.numeric.mutable.MutableBoolean;
+import com.helger.base.timing.StopWatch;
 import com.helger.base.wrapper.Wrapper;
 import com.helger.ddd.DocumentDetails;
+import com.helger.ddd.IDDDDocumentUnwrappingCallback;
+import com.helger.ddd.unwrap.DDDDocumentUnwrapperSBDH;
+import com.helger.diagnostics.error.SingleError;
+import com.helger.diagnostics.error.list.ErrorList;
 import com.helger.diver.api.coord.DVRCoordinate;
 import com.helger.http.CHttp;
 import com.helger.http.header.specific.AcceptMimeTypeList;
+import com.helger.io.resource.ClassPathResource;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.mime.CMimeType;
+import com.helger.peppol.sbdh.PeppolSBDHData;
+import com.helger.peppol.sbdh.PeppolSBDHDataReader;
+import com.helger.peppolid.IDocumentTypeIdentifier;
+import com.helger.peppolid.IParticipantIdentifier;
+import com.helger.peppolid.factory.PeppolIdentifierFactory;
+import com.helger.peppolid.peppol.PeppolIdentifierHelper;
+import com.helger.peppolid.peppol.doctype.EPredefinedDocumentTypeIdentifier;
+import com.helger.phive.api.EValidationBaseType;
+import com.helger.phive.api.ValidationType;
+import com.helger.phive.api.artefact.IValidationArtefact;
+import com.helger.phive.api.artefact.ValidationArtefact;
 import com.helger.phive.api.executorset.IValidationExecutorSet;
+import com.helger.phive.api.result.ValidationResult;
 import com.helger.phive.api.result.ValidationResultList;
+import com.helger.phive.api.validity.EExtendedValidity;
 import com.helger.phive.result.html.PhiveHtmlHelper;
 import com.helger.phive.result.json.JsonValidationResultListHelper;
 import com.helger.phive.result.xml.XMLValidationResultListHelper;
@@ -56,6 +79,7 @@ import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.phorm.validation.AppValidator;
 import com.helger.photon.api.IAPIDescriptor;
 import com.helger.photon.app.PhotonUnifiedResponse;
+import com.helger.sbdh.SBDMarshaller;
 import com.helger.schematron.svrl.SVRLResourceError;
 import com.helger.servlet.request.RequestHelper;
 import com.helger.telemetry.ETelemetrySpanKind;
@@ -80,11 +104,42 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
   private static final Logger LOGGER = LoggerFactory.getLogger (ApiPostDetermineDocTypeAndValidate.class);
   private static final AtomicInteger COUNTER = new AtomicInteger (0);
 
+  // Validation artefact representing the Peppol SBDH (envelope) validation layer that is performed
+  // in Java code (not phive rule based) while unwrapping the document.
+  private static final IValidationArtefact ARTEFACT_PEPPOL_SBDH = new ValidationArtefact (new ValidationType ("peppol-sbdh",
+                                                                                                              EValidationBaseType.OTHER,
+                                                                                                              "Peppol SBDH",
+                                                                                                              false,
+                                                                                                              false),
+                                                                                          new ClassPathResource ("peppol-sbdh/PeppolSBDHDataReader"));
+
   @Override
   @NonNull
   protected String getEndpointName ()
   {
     return "dd_and_validate";
+  }
+
+  private static boolean _isPeppolBISBilling (@Nullable final IDocumentTypeIdentifier aDocumentTypeID)
+  {
+    if (aDocumentTypeID == null)
+      return false;
+
+    // Peppol BIS Billing
+    // Peppol BIS Self-Billing
+    if (EPredefinedDocumentTypeIdentifier.INVOICE_EN16931_PEPPOL_V30.hasSameContent (aDocumentTypeID) ||
+        EPredefinedDocumentTypeIdentifier.CREDITNOTE_EN16931_PEPPOL_V30.hasSameContent (aDocumentTypeID) ||
+        EPredefinedDocumentTypeIdentifier.INVOICE_CEN_EU_EN16931_2017_COMPLIANT_FDC_PEPPOL_EU_2017_POACC_SELFBILLING_3_0.hasSameContent (aDocumentTypeID) ||
+        EPredefinedDocumentTypeIdentifier.CREDITNOTE_CEN_EU_EN16931_2017_COMPLIANT_FDC_PEPPOL_EU_2017_POACC_SELFBILLING_3_0.hasSameContent (aDocumentTypeID))
+      return true;
+
+    // Any Peppol PINT
+    if (PeppolIdentifierHelper.DOCUMENT_TYPE_SCHEME_PEPPOL_DOCTYPE_WILDCARD.equals (aDocumentTypeID.getScheme ()) &&
+        aDocumentTypeID.getValue ().contains (PeppolIdentifierHelper.PEPPOL_PINT_INDICATOR))
+      return true;
+
+    // Some other document
+    return false;
   }
 
   @Override
@@ -146,8 +201,39 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
 
     // Determine document details
     LOGGER.info (sLogPrefix + "Trying to determine document details");
-    final Wrapper <Element> aInnerElement = Wrapper.empty ();
-    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (), aInnerElement::set);
+    final Wrapper <Element> aWrapperInnerElement = Wrapper.empty ();
+    final MutableBoolean aSbdhValidated = new MutableBoolean (false);
+    final Wrapper <StandardBusinessDocument> aWrapperParsedSbd = Wrapper.empty ();
+    final Wrapper <Duration> aWrapperSbdhValidationDuration = Wrapper.of (Duration.ZERO);
+    final ErrorList aSbdhErrorList = new ErrorList ();
+    final IDDDDocumentUnwrappingCallback aUnwrappingCallback = (aUnwrapper, aOuterElement, aInnerElement) -> {
+      // Was it an SBDH?
+      if (DDDDocumentUnwrapperSBDH.WRAPPING_TYPE.equals (aUnwrapper.getWrappingType ()))
+      {
+        // Yes, it's an unwrapped SBDH
+        aSbdhValidated.set (true);
+
+        final StopWatch aSW = StopWatch.createdStarted ();
+
+        // Parse as SBD and remember errors
+        final StandardBusinessDocument aSBD = new SBDMarshaller ().setCollectErrors (aSbdhErrorList)
+                                                                  .read (aOuterElement);
+        if (aSBD != null)
+        {
+          aWrapperParsedSbd.set (aSBD);
+          // Validate as Peppol SBDH
+          new PeppolSBDHDataReader (PeppolIdentifierFactory.INSTANCE).validateData (aSBD.getStandardBusinessDocumentHeader (),
+                                                                                    aInnerElement,
+                                                                                    aSbdhErrorList);
+        }
+        aSW.stop ();
+        aWrapperSbdhValidationDuration.set (aSW.getDuration ());
+      }
+    };
+
+    final DocumentDetails aDD = PhormDDD.findDocumentDetails (aDoc.getDocumentElement (),
+                                                              aUnwrappingCallback,
+                                                              aWrapperInnerElement::set);
     if (aDD == null || !aDD.hasVESID ())
     {
       final String sErrorMsg = "Failed to determine the document type details";
@@ -157,9 +243,9 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
     }
 
     // If the payload was an SBDH, validate the inner element instead
-    final IValidationSourceXML aValSrc = aInnerElement.isSet () ? ValidationSourceXML.createPartial (null,
-                                                                                                     aInnerElement.get ())
-                                                                : ValidationSourceXML.create (null, aDoc);
+    final IValidationSourceXML aValSrc = aWrapperInnerElement.isSet () ? ValidationSourceXML.createPartial (null,
+                                                                                                            aWrapperInnerElement.get ())
+                                                                       : ValidationSourceXML.create (null, aDoc);
 
     final String sVESID = aDD.getVESID ();
     final DVRCoordinate aVESID = DVRCoordinate.parseOrNull (sVESID);
@@ -196,12 +282,68 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
     final Locale aDisplayLocale = CApp.DEFAULT_LOCALE;
     final Wrapper <ValidationResultList> aWrappedVRL = Wrapper.empty ();
 
-    final Runnable aRunnable = () -> {
+    final Runnable aValidationRunnable = () -> {
       // validation
       LOGGER.info (sLogPrefix + "Performing validation using VESID '" + aVESID.getAsSingleID () + "'");
 
-      // Perform validation
+      // Perform main validation
       final ValidationResultList aValidationResultList = AppValidator.validate (aVES, aValSrc, aDisplayLocale, "dd");
+
+      // If the payload was wrapped in a Peppol SBDH, the SBDH was validated during unwrapping.
+      // Include those results as the first (envelope) validation layer.
+      if (aSbdhValidated.booleanValue ())
+      {
+        // If it was SBDH wrapped, and the SBDH is correct under Peppol rules and if the payload is
+        // a Peppol BIS Billing document, verify the Endpoint ID references as well
+        if (aSbdhErrorList.containsNoError () && _isPeppolBISBilling (aDD.getDocumentTypeID ()))
+        {
+          // Convert the identifiers to Peppol Identifiers
+          final IParticipantIdentifier aDDSender = PeppolIdentifierFactory.INSTANCE.createParticipantIdentifier (aDD.getSenderID ());
+          final IParticipantIdentifier aDDReceiver = PeppolIdentifierFactory.INSTANCE.createParticipantIdentifier (aDD.getReceiverID ());
+          if (aDDSender != null || aDDReceiver != null)
+          {
+            final PeppolSBDHData aPeppolSBD = new PeppolSBDHDataReader (PeppolIdentifierFactory.INSTANCE).extractDataUnchecked (aWrapperParsedSbd.get ()
+                                                                                                                                                 .getStandardBusinessDocumentHeader (),
+                                                                                                                                aWrapperInnerElement.get ());
+            if (aDDSender != null && !aPeppolSBD.getSenderAsIdentifier ().hasSameContent (aDDSender))
+            {
+              aSbdhErrorList.add (SingleError.builderError ()
+                                             .errorFieldName ("Sender/Identifier")
+                                             .errorText ("The SBDH sender '" +
+                                                         aPeppolSBD.getSenderURIEncoded () +
+                                                         "' differs from the payload sender ID '" +
+                                                         aDDSender.getURIEncoded () +
+                                                         "' - they must match according to Peppol BIS Billing rules")
+                                             .build ());
+            }
+            if (aDDReceiver != null && !aPeppolSBD.getReceiverAsIdentifier ().hasSameContent (aDDReceiver))
+            {
+              aSbdhErrorList.add (SingleError.builderError ()
+                                             .errorFieldName ("Receiver/Identifier")
+                                             .errorText ("The SBDH receiver '" +
+                                                         aPeppolSBD.getReceiverURIEncoded () +
+                                                         "' differs from the payload receiver ID '" +
+                                                         aDDReceiver.getURIEncoded () +
+                                                         "' - they must match according to Peppol BIS Billing rules")
+                                             .build ());
+            }
+          }
+        }
+
+        final EExtendedValidity eSbdhValidity = aSbdhErrorList.containsAtLeastOneError () ? EExtendedValidity.INVALID
+                                                                                          : EExtendedValidity.VALID;
+        aValidationResultList.addAt (0,
+                                     new ValidationResult (ARTEFACT_PEPPOL_SBDH,
+                                                           aSbdhErrorList,
+                                                           eSbdhValidity,
+                                                           aWrapperSbdhValidationDuration.get ().toMillis ()));
+
+        // Increase overall validation duration
+        if (aValidationResultList.getValidationDuration () != null)
+          aValidationResultList.setValidationDuration (aValidationResultList.getValidationDuration ()
+                                                                            .plus (aWrapperSbdhValidationDuration.get ()));
+      }
+
       aWrappedVRL.set (aValidationResultList);
 
       if (aValidationResultList.getOverallValidity ().isValid ())
@@ -237,7 +379,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       final IMicroElement aResultXMLRoot = aResultXML.addElement ("validationResults");
       aDD.appendToMicroElement (aResultXMLRoot);
 
-      CommonAPIInvoker.invoke (aResultXMLRoot, aRunnable::run);
+      CommonAPIInvoker.invoke (aResultXMLRoot, aValidationRunnable::run);
 
       // Perform conversion
       new XMLValidationResultListHelper ().ves (aVES)
@@ -257,7 +399,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
       if (aAcceptMimeTypes.explicitlySupportsMimeType (CMimeType.TEXT_HTML))
       {
         // Provide response as HTML
-        aRunnable.run ();
+        aValidationRunnable.run ();
 
         // Perform conversion
         final String sResultHtml = new PhiveHtmlHelper (aDisplayLocale).useDefaultCSS ()
@@ -283,7 +425,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
         final IJsonObject aResultJson = new JsonObject ();
         aResultJson.add ("documentDetails", aDD.getAsJson ());
 
-        CommonAPIInvoker.invoke (aResultJson, aRunnable::run);
+        CommonAPIInvoker.invoke (aResultJson, aValidationRunnable::run);
 
         // Perform conversion
         new JsonValidationResultListHelper ().ves (aVES)

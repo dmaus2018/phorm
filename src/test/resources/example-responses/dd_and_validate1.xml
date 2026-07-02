@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<validationResults>
+    <SyntaxID>ubl2-invoice</SyntaxID>
+    <SyntaxVersion>2.1</SyntaxVersion>
+    <SenderID>iso6523-actorid-upis::9915:helger</SenderID>
+    <ReceiverID>iso6523-actorid-upis::9922:OPTBCNTRLACC1001</ReceiverID>
+    <DocTypeID>busdox-docid-qns::urn:oasis:names:specification:ubl:schema:xsd:Invoice-2::Invoice##urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0::2.1</DocTypeID>
+    <ProcessID>cenbii-procid-ubl::urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</ProcessID>
+    <CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0</CustomizationID>
+    <BusinessDocumentID>POP000306-40-20250422T184105</BusinessDocumentID>
+    <SenderName>SupplierOfficialName Ltd</SenderName>
+    <SenderCountryCode>GB</SenderCountryCode>
+    <ReceiverName>Buyer Official Name</ReceiverName>
+    <ReceiverCountryCode>SE</ReceiverCountryCode>
+    <VESID>eu.peppol.bis3:invoice:latest-active</VESID>
+    <ProfileName>Peppol BIS Billing UBL Invoice V3</ProfileName>
+    <Flag>IsEN16931-2017CIUS</Flag>
+    <Wrapper>SBDH</Wrapper>
+    <invocationDateTime>2026-07-02T11:09:47.50873Z</invocationDateTime>
+    <invocationDurationMillis>616</invocationDurationMillis>
+    <validationDateTime>2026-07-02T13:09:47.509573+02:00</validationDateTime>
+    <validationSource>
+        <sourceTypeID>xml</sourceTypeID>
+        <partialSource>true</partialSource>
+    </validationSource>
+    <ves>
+        <vesid>eu.peppol.bis3:invoice:2025.11</vesid>
+        <name>OpenPeppol UBL Invoice (2025.11) (aka BIS Billing 3.0.20)</name>
+        <deprecated>false</deprecated>
+        <status>
+            <lastModification>2026-07-02T13:09:47.467+02:00</lastModification>
+            <type>valid</type>
+            <validFrom>2026-02-23T00:00:00Z</validFrom>
+        </status>
+    </ves>
+    <success>false</success>
+    <interrupted>false</interrupted>
+    <mostSevereErrorLevel>ERROR</mostSevereErrorLevel>
+    <result>
+        <success>FALSE</success>
+        <validity>invalid</validity>
+        <artifactType>peppol-sbdh</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>peppol-sbdh/PeppolSBDHDataReader</artifactPath>
+        <item>
+            <errorLevel>ERROR</errorLevel>
+            <errorFieldName>Sender/Identifier</errorFieldName>
+            <errorText>The SBDH sender 'iso6523-actorid-upis::0088:7315458756324' differs from the payload sender ID 'iso6523-actorid-upis::9915:helger' - they must match according to Peppol BIS Billing rules</errorText>
+        </item>
+        <item>
+            <errorLevel>ERROR</errorLevel>
+            <errorFieldName>Receiver/Identifier</errorFieldName>
+            <errorText>The SBDH receiver 'iso6523-actorid-upis::0088:4562458856624' differs from the payload receiver ID 'iso6523-actorid-upis::9922:optbcntrlacc1001' - they must match according to Peppol BIS Billing rules</errorText>
+        </item>
+        <durationMS>40</durationMS>
+    </result>
+    <result>
+        <success>TRUE</success>
+        <validity>valid</validity>
+        <artifactType>xsd</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>external/schemas/ubl21/maindoc/UBL-Invoice-2.1.xsd</artifactPath>
+        <durationMS>83</durationMS>
+    </result>
+    <result>
+        <success>TRUE</success>
+        <validity>valid</validity>
+        <artifactType>schematron-xslt</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>external/schematron/openpeppol/2025.11/xslt/CEN-EN16931-UBL.xslt</artifactPath>
+        <durationMS>420</durationMS>
+    </result>
+    <result>
+        <success>TRUE</success>
+        <validity>valid</validity>
+        <artifactType>schematron-xslt</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>external/schematron/openpeppol/2025.11/xslt/PEPPOL-EN16931-UBL.xslt</artifactPath>
+        <durationMS>99</durationMS>
+    </result>
+    <durationMS>644</durationMS>
+</validationResults>

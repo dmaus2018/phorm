@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<validationResults>
+    <invocationDateTime>2026-07-02T11:20:06.617322Z</invocationDateTime>
+    <invocationDurationMillis>5</invocationDurationMillis>
+    <validationDateTime>2026-07-02T13:20:06.617855+02:00</validationDateTime>
+    <validationSource>
+        <sourceTypeID>xml</sourceTypeID>
+        <partialSource>false</partialSource>
+    </validationSource>
+    <ves>
+        <vesid>de.zugferd:extended:2.5</vesid>
+        <name>ZUGFeRD 2.5 (EXTENDED)</name>
+        <deprecated>false</deprecated>
+        <status>
+            <lastModification>2026-07-02T13:09:47.506+02:00</lastModification>
+            <type>valid</type>
+        </status>
+    </ves>
+    <success>false</success>
+    <interrupted>true</interrupted>
+    <mostSevereErrorLevel>ERROR</mostSevereErrorLevel>
+    <result>
+        <success>FALSE</success>
+        <validity>invalid</validity>
+        <artifactType>xsd</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>/external/schemas/2.5/extended/FACTUR-X_EXTENDED.xsd</artifactPath>
+        <item>
+            <errorLevel>ERROR</errorLevel>
+            <errorText>[SAX] cvc-elt.1.a: Cannot find the declaration of element 'rsm:CrossIndustryDocument'.</errorText>
+            <exception>
+                <class>org.xml.sax.SAXParseException</class>
+                <message>cvc-elt.1.a: Cannot find the declaration of element 'rsm:CrossIndustryDocument'.</message>
+                <stackTrace>org.xml.sax.SAXParseException; cvc-elt.1.a: Cannot find the declaration of element 'rsm:CrossIndustryDocument'.
+1.: java.xml/com.sun.org.apache.xerces.internal.util.ErrorHandlerWrapper.createSAXParseException(ErrorHandlerWrapper.java:204)
+2.: java.xml/com.sun.org.apache.xerces.internal.util.ErrorHandlerWrapper.error(ErrorHandlerWrapper.java:135)
+3.: java.xml/com.sun.org.apache.xerces.internal.impl.XMLErrorReporter.reportError(XMLErrorReporter.java:396)
+4.: java.xml/com.sun.org.apache.xerces.internal.impl.XMLErrorReporter.reportError(XMLErrorReporter.java:327)
+5.: java.xml/com.sun.org.apache.xerces.internal.impl.XMLErrorReporter.reportError(XMLErrorReporter.java:284)
+6.: java.xml/com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator.handleStartElement(XMLSchemaValidator.java:2133)
+7.: java.xml/com.sun.org.apache.xerces.internal.impl.xs.XMLSchemaValidator.startElement(XMLSchemaValidator.java:830)
+8.: java.xml/com.sun.org.apache.xerces.internal.jaxp.validation.DOMValidatorHelper.beginNode(DOMValidatorHelper.java:277)
+9.: java.xml/com.sun.org.apache.xerces.internal.jaxp.validation.DOMValidatorHelper.validate(DOMValidatorHelper.java:244)
+10.: java.xml/com.sun.org.apache.xerces.internal.jaxp.validation.DOMValidatorHelper.validate(DOMValidatorHelper.java:190)
+11.: java.xml/com.sun.org.apache.xerces.internal.jaxp.validation.ValidatorImpl.validate(ValidatorImpl.java:108)
+12.: com.helger.xml.schema.XMLSchemaValidationHelper.validate(XMLSchemaValidationHelper.java:204)
+13.: com.helger.phive.xml.xsd.ValidationExecutorXSD.applyValidation(ValidationExecutorXSD.java:100)
+14.: com.helger.phive.xml.xsd.ValidationExecutorXSD.applyValidation(ValidationExecutorXSD.java:56)
+15.: com.helger.phive.api.execute.ValidationExecutionManager.executeValidation(ValidationExecutionManager.java:182)
+16.: com.helger.phive.api.execute.IValidationExecutionManager.executeValidation(IValidationExecutionManager.java:78)
+17.: com.helger.phorm.validation.AppValidator.lambda$validate$1(AppValidator.java:163)
+18.: com.helger.telemetry.Telemetry.withSpan(Telemetry.java:131)
+19.: com.helger.phorm.validation.AppValidator.validate(AppValidator.java:160)
+20.: com.helger.phorm.api.ApiPostValidate.lambda$invokeAPI$3(ApiPostValidate.java:190)
+21.: com.helger.phorm.api.CommonAPIInvoker.invoke(CommonAPIInvoker.java:66)
+22.: com.helger.phorm.api.ApiPostValidate.invokeAPI(ApiPostValidate.java:228)
+23.: com.helger.phorm.api.AbstractAPIInvoker.lambda$invokeAPI$1(AbstractAPIInvoker.java:137)
+24.: com.helger.telemetry.Telemetry.withSpanVoidThrowing(Telemetry.java:243)
+25.: com.helger.phorm.api.AbstractAPIInvoker.invokeAPI(AbstractAPIInvoker.java:129)
+26.: com.helger.photon.api.InvokableAPIDescriptor.invokeAPI(InvokableAPIDescriptor.java:197)
+27.: com.helger.photon.api.APIInvoker.invoke(APIInvoker.java:73)
+28.: com.helger.photon.api.servlet.APIXServletHandler.handleRequest(APIXServletHandler.java:132)
+29.: com.helger.xservlet.handler.simple.XServletHandlerToSimpleHandler.onRequest(XServletHandlerToSimpleHandler.java:239)
+30.: com.helger.xservlet.AbstractXServlet._invokeHandler(AbstractXServlet.java:347)
+31.: com.helger.xservlet.AbstractXServlet.service(AbstractXServlet.java:530)
+32.: jakarta.servlet.http.HttpServlet.service(HttpServlet.java:614)
+33.: com.helger.xservlet.AbstractXServlet.service(AbstractXServlet.java:586)
+  [27 elements omitted -- org.eclipse.jetty.ee10.servlet.ServletHolder$NotAsync.service(ServletHolder.java:1388)]</stackTrace>
+            </exception>
+        </item>
+        <durationMS>3</durationMS>
+    </result>
+    <result>
+        <success>UNDEFINED</success>
+        <validity>skipped</validity>
+        <artifactType>schematron-xslt</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>/external/schematron/2.5/FACTUR-X_EXTENDED.xslt</artifactPath>
+        <durationMS>0</durationMS>
+    </result>
+    <durationMS>3</durationMS>
+</validationResults>

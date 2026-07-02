@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2022-2026 Philip Helger (www.helger.com)
+    philip[at]helger[dot]com
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!--
+    XML Schema for the XML responses of the Phorm validation APIs, returned when
+    the client sends "Accept: application/xml".
+
+    A single schema covers BOTH endpoints because they share the identical root
+    element "validationResults" in no XML namespace:
+
+      * POST /api/validate/{vesid}   (com.helger.phorm.api.ApiPostValidate)
+          -> The DocumentDetails elements (SyntaxID .. Wrapper) are NEVER present.
+
+      * POST /api/dd_and_validate     (com.helger.phorm.api.ApiPostDetermineDocTypeAndValidate)
+          -> The response is a strict superset: the DocumentDetails elements are
+             prepended (whichever were determined), followed by the exact same
+             validation result body. For an SBDH-wrapped Peppol payload an
+             additional leading <result> with artifactType "peppol-sbdh" is
+             emitted as the envelope validation layer.
+
+    The whole document is in the empty namespace (no targetNamespace), matching
+    the serialized output.
+
+    Element order follows the deterministic serialization order of:
+      * com.helger.ddd.DocumentDetailsXMLHelper   (ddd 0.8.10)
+      * com.helger.phorm.api.CommonAPIInvoker
+      * com.helger.phive.result.xml.XMLValidationResultListHelper / PhiveXMLHelper (phive-result 12.0.3)
+
+    Note: on rare internal errors CommonAPIInvoker additionally emits a leading
+    <success>false</success> and an <exception> element. That degraded fallback
+    is intentionally not modelled here; this schema describes the regular
+    response.
+-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="unqualified"
+           attributeFormDefault="unqualified">
+
+  <xs:element name="validationResults" type="ValidationResultsType">
+    <xs:annotation>
+      <xs:documentation>Root element of the /api/validate/{vesid} and /api/dd_and_validate XML responses.</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:complexType name="ValidationResultsType">
+    <xs:sequence>
+      <!-- ============================================================== -->
+      <!-- DocumentDetails - only emitted by /api/dd_and_validate.         -->
+      <!-- All fields are optional; order per DocumentDetailsXMLHelper.    -->
+      <!-- ============================================================== -->
+      <xs:element name="SyntaxID" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>DDD syntax identifier of the detected document.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="SyntaxVersion" type="xs:string" minOccurs="0"/>
+      <xs:element name="SenderID" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>C1 sender participant identifier, URI encoded (scheme::value).</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="ReceiverID" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>C4 receiver participant identifier, URI encoded (scheme::value).</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="DocTypeID" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>Document type identifier, URI encoded (scheme::value).</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="ProcessID" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>Process identifier, URI encoded (scheme::value).</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="CustomizationID" type="xs:string" minOccurs="0"/>
+      <xs:element name="BusinessDocumentID" type="xs:string" minOccurs="0"/>
+      <xs:element name="SenderName" type="xs:string" minOccurs="0"/>
+      <xs:element name="SenderCountryCode" type="xs:string" minOccurs="0"/>
+      <xs:element name="ReceiverName" type="xs:string" minOccurs="0"/>
+      <xs:element name="ReceiverCountryCode" type="xs:string" minOccurs="0"/>
+      <xs:element name="VESID" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>The Validation Executor Set ID selected for validation.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="ProfileName" type="xs:string" minOccurs="0"/>
+      <xs:element name="Flag" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="Wrapper" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation><xs:documentation>Detected envelope/wrapper types, e.g. "SBDH", "XHE".</xs:documentation></xs:annotation>
+      </xs:element>
+
+      <!-- ============================================================== -->
+      <!-- Invocation metadata - CommonAPIInvoker (both endpoints).        -->
+      <!-- ============================================================== -->
+      <xs:element name="invocationDateTime" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Query start timestamp in ISO zoned date-time format (may include a bracketed zone region), hence typed as string.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="invocationDurationMillis" type="xs:long">
+        <xs:annotation><xs:documentation>Total API invocation duration in milliseconds.</xs:documentation></xs:annotation>
+      </xs:element>
+
+      <!-- ============================================================== -->
+      <!-- Validation result list - XMLValidationResultListHelper.         -->
+      <!-- ============================================================== -->
+      <xs:element name="validationDateTime" type="xs:dateTime">
+        <xs:annotation><xs:documentation>Timestamp when the validation was performed.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="validationSource" type="ValidationSourceType" minOccurs="0"/>
+      <xs:element name="ves" type="VESType" minOccurs="0">
+        <xs:annotation><xs:documentation>Details of the Validation Executor Set that was used.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="success" type="xs:boolean">
+        <xs:annotation><xs:documentation>Overall validity: true if the document is considered valid.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="interrupted" type="xs:boolean">
+        <xs:annotation><xs:documentation>true if validation was interrupted before all layers were executed.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="mostSevereErrorLevel" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>Highest error level encountered, e.g. "SUCCESS", "WARN", "ERROR".</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="result" type="ValidationResultType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation><xs:documentation>One entry per validation layer.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="durationMS" type="xs:long" minOccurs="0">
+        <xs:annotation><xs:documentation>Overall validation duration in milliseconds (present when known).</xs:documentation></xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ================================================================== -->
+  <!-- Validation source (PhiveXMLHelper.getXMLValidationSource).          -->
+  <!-- Phorm never emits the payload, so payloadBase64 is optional.        -->
+  <!-- ================================================================== -->
+  <xs:complexType name="ValidationSourceType">
+    <xs:sequence>
+      <xs:element name="sourceTypeID" type="xs:string"/>
+      <xs:element name="systemID" type="xs:string" minOccurs="0"/>
+      <xs:element name="partialSource" type="xs:boolean"/>
+      <xs:element name="payloadBase64" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>Base64 encoded validation source payload (not emitted by Phorm).</xs:documentation></xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ================================================================== -->
+  <!-- Validation Executor Set details (PhiveXMLHelper.getXMLVES).         -->
+  <!-- ================================================================== -->
+  <xs:complexType name="VESType">
+    <xs:sequence>
+      <xs:element name="vesid" type="xs:string">
+        <xs:annotation><xs:documentation>The single-string VESID coordinate.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="name" type="xs:string">
+        <xs:annotation><xs:documentation>Human readable display name of the VES.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="deprecated" type="xs:boolean"/>
+      <xs:element name="status" type="VESStatusType"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- VES status (PhiveXMLHelper.getXMLVESStatus). -->
+  <xs:complexType name="VESStatusType">
+    <xs:sequence>
+      <xs:element name="lastModification" type="xs:dateTime"/>
+      <xs:element name="type" type="xs:string">
+        <xs:annotation><xs:documentation>Status type ID, e.g. "valid", "deprecated".</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="validFrom" type="xs:dateTime" minOccurs="0"/>
+      <xs:element name="validTo" type="xs:dateTime" minOccurs="0"/>
+      <xs:element name="deprecationReason" type="xs:string" minOccurs="0"/>
+      <xs:element name="replacementVesid" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ================================================================== -->
+  <!-- One validation layer result (XMLValidationResultListHelper).        -->
+  <!-- ================================================================== -->
+  <xs:complexType name="ValidationResultType">
+    <xs:sequence>
+      <xs:element name="success" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>Tri-state validity for backwards compatibility: "true", "false" or "undefined" (skipped layer).</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="validity" type="xs:string">
+        <xs:annotation><xs:documentation>Extended validity ID, e.g. "valid", "invalid", "skipped".</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="artifactType" type="xs:string">
+        <xs:annotation><xs:documentation>Validation type ID of this layer, e.g. "xsd", "schematron", "peppol-sbdh".</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="artifactPathType" type="xs:string" minOccurs="0"/>
+      <xs:element name="artifactPath" type="xs:string"/>
+      <xs:element name="item" type="ErrorType" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation><xs:documentation>Individual errors/warnings of this layer.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="durationMS" type="xs:long">
+        <xs:annotation><xs:documentation>Duration of this layer in milliseconds.</xs:documentation></xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- ================================================================== -->
+  <!-- A single error/warning item (PhiveXMLHelper / XMLErrorBuilder).     -->
+  <!-- ================================================================== -->
+  <xs:complexType name="ErrorType">
+    <xs:sequence>
+      <xs:element name="errorDateTime" type="xs:dateTime" minOccurs="0"/>
+      <xs:element name="errorLevel" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>e.g. "SUCCESS", "INFO", "WARN", "ERROR".</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="errorID" type="xs:string" minOccurs="0"/>
+      <xs:element name="errorFieldName" type="xs:string" minOccurs="0"/>
+      <xs:element name="errorLocationObj" type="ErrorLocationType" minOccurs="0"/>
+      <xs:element name="test" type="xs:string" minOccurs="0">
+        <xs:annotation><xs:documentation>The Schematron test expression, when applicable.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="errorText" type="xs:string" minOccurs="0"/>
+      <xs:element name="exception" type="ExceptionType" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Error location (PhiveXMLHelper.getXMLErrorLocation). -->
+  <xs:complexType name="ErrorLocationType">
+    <xs:sequence>
+      <xs:element name="resource" type="xs:string" minOccurs="0"/>
+      <xs:element name="line" type="xs:int" minOccurs="0"/>
+      <xs:element name="col" type="xs:int" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- Restored exception (PhiveRestoredException.getAsXML). -->
+  <xs:complexType name="ExceptionType">
+    <xs:sequence>
+      <xs:element name="class" type="xs:string">
+        <xs:annotation><xs:documentation>Fully qualified exception class name.</xs:documentation></xs:annotation>
+      </xs:element>
+      <xs:element name="message" type="xs:string" minOccurs="0"/>
+      <xs:element name="stackTrace" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

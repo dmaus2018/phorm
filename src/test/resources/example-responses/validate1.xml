@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<validationResults>
+    <invocationDateTime>2026-07-02T11:17:29.993076Z</invocationDateTime>
+    <invocationDurationMillis>32</invocationDurationMillis>
+    <validationDateTime>2026-07-02T13:17:29.993479+02:00</validationDateTime>
+    <validationSource>
+        <sourceTypeID>xml</sourceTypeID>
+        <partialSource>false</partialSource>
+    </validationSource>
+    <ves>
+        <vesid>eu.peppol.bis3:invoice:2026.5</vesid>
+        <name>OpenPeppol UBL Invoice (2026.5) (aka BIS Billing 3.0.21)</name>
+        <deprecated>false</deprecated>
+        <status>
+            <lastModification>2026-07-02T13:09:47.468+02:00</lastModification>
+            <type>valid</type>
+            <validFrom>2026-08-17T00:00:00Z</validFrom>
+        </status>
+    </ves>
+    <success>true</success>
+    <interrupted>false</interrupted>
+    <mostSevereErrorLevel>SUCCESS</mostSevereErrorLevel>
+    <result>
+        <success>TRUE</success>
+        <validity>valid</validity>
+        <artifactType>xsd</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>external/schemas/ubl21/maindoc/UBL-Invoice-2.1.xsd</artifactPath>
+        <durationMS>1</durationMS>
+    </result>
+    <result>
+        <success>TRUE</success>
+        <validity>valid</validity>
+        <artifactType>schematron-xslt</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>external/schematron/openpeppol/2026.5/xslt/CEN-EN16931-UBL.xslt</artifactPath>
+        <durationMS>23</durationMS>
+    </result>
+    <result>
+        <success>TRUE</success>
+        <validity>valid</validity>
+        <artifactType>schematron-xslt</artifactType>
+        <artifactPathType>classpath</artifactPathType>
+        <artifactPath>external/schematron/openpeppol/2026.5/xslt/PEPPOL-EN16931-UBL.xslt</artifactPath>
+        <durationMS>7</durationMS>
+    </result>
+    <durationMS>31</durationMS>
+</validationResults>

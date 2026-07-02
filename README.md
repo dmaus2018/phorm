@@ -63,7 +63,10 @@ The services offers the following APIs.
 * POST **`/api/dd_and_validate`**
   * Determine the document type and afterwards validate the provided payload in the body against the determined validation rules
     If the payload is wrapped in an SBDH or XHE, the payload document is automatically unwrapped.
-    Peppol SBDH constraints are automatically validated (since 2.1.5). 
+    If the payload is wrapped in a Peppol SBDH, its envelope constraints are automatically validated and returned as an
+    additional first (envelope) validation layer in the result (since 2.1.5). Additionally, if the SBDH is valid and the
+    payload is a Peppol BIS Billing / PINT document, the SBDH sender and receiver participant IDs are cross-checked against
+    the payload sender and receiver IDs (they must match according to the Peppol BIS Billing rules).
   * Requires the HTTP header `X-Token` to have the configured value (see below for `phorm.api.requiredtoken`)
   * If the HTTP Request Header `Accept` with value `application/xml` is present, the result is an XML structure.
     If the HTTP Request Header `Accept` with value `text/html` is present, the result is an HTML file.
@@ -198,8 +201,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-* Added validation of Peppol SBDH constraints in `/api/dd_and_validate`
-* Added validation of Peppol BIS Billing and SBDH constraints in `/api/dd_and_validate`
+v2.1.5 - 2026-07-02
+* Added validation of Peppol SBDH envelope constraints in `/api/dd_and_validate`, returned as an additional first validation layer. See [#14](https://github.com/phax/phorm/issues/14) - thx @dmaus2018
+* Added a Peppol BIS Billing check in `/api/dd_and_validate` that the SBDH sender/receiver participant IDs match the payload sender/receiver IDs. See [#14](https://github.com/phax/phorm/issues/14) - thx @PontusPaulsson
 
 v2.1.4 - 2026-07-01
 * Added OpenTelemetry support

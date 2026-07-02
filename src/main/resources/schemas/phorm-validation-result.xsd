@@ -38,9 +38,9 @@
     the serialized output.
 
     Element order follows the deterministic serialization order of:
-      * com.helger.ddd.DocumentDetailsXMLHelper   (ddd 0.8.10)
+      * com.helger.ddd.DocumentDetailsXMLHelper
       * com.helger.phorm.api.CommonAPIInvoker
-      * com.helger.phive.result.xml.XMLValidationResultListHelper / PhiveXMLHelper (phive-result 12.0.3)
+      * com.helger.phive.result.xml.XMLValidationResultListHelper / PhiveXMLHelper
 
     Note: on rare internal errors CommonAPIInvoker additionally emits a leading
     <success>false</success> and an <exception> element. That degraded fallback

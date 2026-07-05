@@ -62,7 +62,7 @@
   </developers>
   
   <properties>
-    <log4j.version>2.26.0</log4j.version>
+    <log4j.version>2.26.1</log4j.version>
     <ph-telemetry.version>1.0.1</ph-telemetry.version>
     <opentelemetry.version>1.63.0</opentelemetry.version>
   </properties>

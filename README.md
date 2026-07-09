@@ -201,6 +201,10 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.1.6 - 2026-07-09
+* Updated to phive-rules 4.3.9
+* Include existing phive-rules submodule `phive-rules-isdoc`, `phive-rules-osa` and `phive-rules-serbia`
+
 v2.1.5 - 2026-07-02
 * Added validation of Peppol SBDH envelope constraints in `/api/dd_and_validate`, returned as an additional first validation layer. See [#14](https://github.com/phax/phorm/issues/14) - thx @dmaus2018
 * Added a Peppol BIS Billing check in `/api/dd_and_validate` that the SBDH sender/receiver participant IDs match the payload sender/receiver IDs. See [#14](https://github.com/phax/phorm/issues/14) - thx @PontusPaulsson

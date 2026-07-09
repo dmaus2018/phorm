@@ -170,9 +170,32 @@ public final class MainRunDDAndValidateJdkHttpClient
     // For XML output the root element is <validationResults>; for HTML a ready
     // to render report is returned. Change the "Accept" header above accordingly.
 
-    if (nStatusCode >= 200 && nStatusCode < 300)
-      System.out.println ("=> Request was accepted and processed by the server.");
-    else
-      System.out.println ("=> Server returned a non-2xx status - see body above for details.");
+    // With the default server setting "phorm.api.response.onfailure.http400=true"
+    // the endpoint answers a *content-wise invalid* document with HTTP 400. So
+    // for this example we treat the two most relevant status codes explicitly:
+    // * 2xx - the document was determined and validated successfully (valid)
+    // * 400 - the document is invalid (or could not be parsed / determined)
+    // * everything else - a request/transport/authentication problem
+    switch (nStatusCode)
+    {
+      case 200:
+        System.out.println ("=> Document is VALID - it passed determination and validation.");
+        break;
+      case 400:
+        System.out.println ("=> Document is INVALID - it was rejected by the validation ruleset " +
+                            "(or the body could not be parsed as XML or the document type could not " +
+                            "be determined). Inspect the response body above for the details.");
+        break;
+      case 403:
+        System.out.println ("=> Authentication failed - the 'X-Token' header was missing or did not " +
+                            "match the server side 'phorm.api.requiredtoken'.");
+        break;
+      default:
+        if (nStatusCode >= 200 && nStatusCode < 300)
+          System.out.println ("=> Request was accepted and processed by the server.");
+        else
+          System.out.println ("=> Server returned an unexpected status - see body above for details.");
+        break;
+    }
   }
 }

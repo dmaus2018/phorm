@@ -336,7 +336,7 @@ public class ApiPostDetermineDocTypeAndValidate extends AbstractAPIInvoker
                                      new ValidationResult (ARTEFACT_PEPPOL_SBDH,
                                                            aSbdhErrorList,
                                                            eSbdhValidity,
-                                                           aWrapperSbdhValidationDuration.get ().toMillis ()));
+                                                           aWrapperSbdhValidationDuration.get ()));
 
         // Increase overall validation duration
         if (aValidationResultList.getValidationDuration () != null)

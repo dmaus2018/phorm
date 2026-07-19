@@ -201,6 +201,13 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.2.0 - 2026-07-19
+* Updated to phive 12.1.0
+* Updated to phive-rules 4.4.0
+* Updated to ph-schematron 10.0.0
+* Updated to kaltblut 0.9.4
+* Switched to the aggregating `phive-rules-all` module, so all available rule sets are registered automatically
+
 v2.1.6 - 2026-07-09
 * Updated to phive-rules 4.3.9
 * Include existing phive-rules submodule `phive-rules-isdoc`, `phive-rules-osa` and `phive-rules-serbia`

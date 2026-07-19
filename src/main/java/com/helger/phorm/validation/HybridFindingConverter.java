@@ -89,6 +89,6 @@ public final class HybridFindingConverter
     return new ValidationResult (getValidationArtefact (aLayer.getKind ()),
                                  aErrorList,
                                  eValidity,
-                                 aLayer.getDuration ().toMillis ());
+                                 aLayer.getDuration ());
   }
 }

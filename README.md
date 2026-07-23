@@ -19,9 +19,24 @@ The implementation of the validation is based on the open source validation engi
 * [Apache Maven](https://maven.apache.org) is used as the build tool. May be abstracted by a Docker image.
 * Coding language: English
 
-# API
+# HTTP Endpoints
 
-The services offers the following APIs.
+Phorm exposes two kinds of HTTP endpoints: a handful of top-level servlets (root page, health check and status) and the REST API below `/api`.
+
+| Method | Path | Servlet / Handler | Purpose |
+|---|---|---|---|
+| GET | `/` | `RootServlet` | HTML landing page. In test versions it lists the supported APIs and all registered VESIDs; otherwise it shows only the application name |
+| GET | `/ping` | `PingPongServlet` | Health / keep-alive check, always replies with the plain text `pong` |
+| GET | `/status` | `StatusServlet` | Application status as a JSON structure (see below) |
+| POST | `/api/validate/{vesid}` | `ApiPostValidate` | Validate a payload against a specific VESID |
+| GET | `/api/get/vesids` | `ApiGetAllVESIDs` | List all registered VESIDs |
+| POST | `/api/determinedoctype` | `ApiPostDetermineDocDetails` | Auto-detect the document format of a payload |
+| POST | `/api/dd_and_validate` | `ApiPostDetermineDocTypeAndValidate` | Detect the document type and validate in one call |
+| POST | `/api/hybrid_validate` | `ApiPostHybridValidate` | Validate a ZUGFeRD / Factur-X hybrid PDF invoice |
+
+## REST API
+
+The service offers the following REST APIs below `/api`.
 
 * POST **`/api/validate/{vesid}`**
   * Validate the provided payload in the body against the validation rules, identified by `{vesid}`
@@ -87,22 +102,68 @@ The services offers the following APIs.
   * Test invocation (replace `XXX` with real token):
     * `curl -X POST -H "Content-Type: application/pdf" -H "X-Token: XXX" --data-binary @invoice.pdf "http://localhost:8080/api/hybrid_validate?country=DE"`
 
+## Servlets
+
+* GET **`/`** (`RootServlet`)
+  * Returns an HTML page.
+  * When the application runs as a "test version" (see `webapp.testversion`), the page additionally lists all supported APIs and all registered VESIDs.
+  * The optional URL parameter `include-deprecated` also lists deprecated VESIDs. No parameter value is needed.
+  * Test invocation:
+    * `curl http://localhost:8080/`
+* GET **`/ping`** (`PingPongServlet`)
+  * Health check / keep-alive endpoint.
+  * Always returns the plain text (`text/plain`) body `pong`. Caching is disabled.
+  * Test invocation:
+    * `curl http://localhost:8080/ping`
+* GET **`/status`** (`StatusServlet`)
+  * Returns application status as a JSON structure. Caching is disabled.
+  * Only delivers data if `phorm.statusapi.enabled` is `true`; otherwise it returns `{"status.enabled":false}`.
+  * Test invocation:
+    * `curl http://localhost:8080/status`
+  * Example output:
+```json
+{
+  "build.timestamp":"...",
+  "startup.datetime":"2026-07-23T08:00:00Z",
+  "status.datetime":"2026-07-23T09:15:00Z",
+  "version.pp":"2.2.0",
+  "version.java":"21",
+  "global.debug":false,
+  "global.production":true
+}
+```
+
 # Configuration
 
 Phorm comes with one configuration file called `application.properties`.
 The lookup rules for the file is defined in https://github.com/phax/ph-commons/wiki/ph-config
 
 It supports the following settings:
-* **`global.debug`**: overall debug mode. This enables additional checks that should not be executed every time (e.g. because they are slow or because they are spamming the logfile etc.). This flag has no impact on the logging level! This flag should be set to `true` in development mode, but to `false` in production mode. The value of this field is internally maintained in class `com.helger.commons.debug.GlobalDebug`.
-* **`global.production`**: overall production mode. If this flag is set to `false` certain functionality not applicable in development environment (like mass mail sending) is disabled. This flag should be set to `true` in production mode.
-* **`webapp.datapath`**: the path where all relevant data and settings are stored. This can e.g. be a relative path (like `conf` - relative to the web application directory) for development purposes but should be an absolute path (e.g. `/config/phorm`) in production. Make sure the user running Phorm has write access to this folder.
-* **`webapp.checkfileaccess`**: a flag that determines whether the directory of the web application should be checked for read and write access. This is only required if the data path inside the web application and should therefore always be `false`.
-* **`webapp.testversion`**: a special indicator for the web application whether the version should be highlighted as a "test" version. Set to `true` in debug mode and `false` in production mode.
+* **`global.debug`**: overall debug mode.
+  This enables additional checks that should not be executed every time (e.g. because they are slow or because they are spamming the logfile etc.).
+  This flag has no impact on the logging level.
+  This flag should be set to `true` in development mode, but to `false` in production mode.
+  The value of this field is internally maintained in class `com.helger.commons.debug.GlobalDebug`.
+* **`global.production`**: overall production mode.
+  If this flag is set to `false` certain functionality not applicable in development environment (like mass mail sending) is disabled.
+  This flag should be set to `true` in production mode.
+* **`webapp.datapath`**: the path where all relevant data and settings are stored.
+  This can e.g. be a relative path (like `conf` - relative to the web application directory) for development purposes but should be an absolute path (e.g. `/config/phorm`) in production.
+  Make sure the user running Phorm has write access to this folder.
+* **`webapp.checkfileaccess`**: a flag that determines whether the directory of the web application should be checked for read and write access.
+  This is only required if the data path inside the web application and should therefore always be `false`.
+* **`webapp.testversion`**: a special indicator for the web application whether the version should be highlighted as a "test" version.
+  Set to `true` in debug mode and `false` in production mode.
 * **`phorm.statusapi.enabled`**: a flag that indicates, if the status API (`/status`) should deliver data or not.
-* **`phorm.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API. Customize this once and don't share it. The development default is `phorm-dev-token`.
-* **`phorm.api.response.onfailure.http400`**: a flag to indicate, whether the API should return HTTP 400 (Bad Request) on failed validations or not. The default is `true` for backwards compatibility reasons.
-* **`phorm.api.response.log.payload`**: a flag to indicate, whether the validation response should be logged in the console or not. The default is `false`.
-* **`phorm.telemetry.enabled`**: a flag that enables in-process OpenTelemetry SDK initialisation at startup so spans and metrics are exported. The default is `false` — when disabled, every telemetry call inside Phorm collapses to a cheap no-op and no OTel network connection is opened. Set to `true` to opt in.
+* **`phorm.api.requiredtoken`**: the specific value of the `X-Token` header that must be provided to access the API.
+  Customize this once and don't share it. The development default is `phorm-dev-token`.
+* **`phorm.api.response.onfailure.http400`**: a flag to indicate, whether the API should return HTTP 400 (Bad Request) on failed validations or not.
+  The default is `true` for backwards compatibility reasons.
+* **`phorm.api.response.log.payload`**: a flag to indicate, whether the validation response should be logged in the console or not.
+  The default is `false`.
+* **`phorm.telemetry.enabled`**: a flag that enables in-process OpenTelemetry SDK initialisation at startup so spans and metrics are exported.
+  The default is `false` — when disabled, every telemetry call inside Phorm collapses to a cheap no-op and no OTel network connection is opened.
+  Set to `true` to opt in.
 
 ## OpenTelemetry
 

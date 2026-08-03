@@ -262,6 +262,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.2.2 - 2026-08-03
+* Updated to phive-rules 4.5.0
+
 v2.2.1 - 2026-07-30
 * Updated to phive-rules 4.4.2
 * Fixes [issue #17](https://github.com/phax/phorm/issues/17) - thx @ic-officient

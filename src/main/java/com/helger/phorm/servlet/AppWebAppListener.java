@@ -43,8 +43,12 @@ import com.helger.phorm.telemetry.PhormMetrics;
 import com.helger.photon.api.APIDescriptor;
 import com.helger.photon.api.APIPath;
 import com.helger.photon.api.IAPIRegistry;
+import com.helger.photon.audit.DoNothingAuditManager;
+import com.helger.photon.audit.IAuditManager;
 import com.helger.photon.core.locale.ILocaleManager;
 import com.helger.photon.core.servlet.WebAppListener;
+import com.helger.photon.security.mgr.PhotonSecurityManager;
+import com.helger.photon.security.mgr.PhotonSecurityManager.FactoryXML;
 import com.helger.scope.singleton.SingletonHelper;
 import com.helger.xservlet.requesttrack.RequestTrackerSettings;
 
@@ -178,6 +182,15 @@ public final class AppWebAppListener extends WebAppListener
   @Override
   protected void initSecurity ()
   {
+    PhotonSecurityManager.setFactory (new FactoryXML ()
+    {
+      @Override
+      public IAuditManager createAuditMgr ()
+      {
+        // Phorm is a stateless validation service - avoid writing audit files
+        return new DoNothingAuditManager ();
+      }
+    });
     // Set all security related stuff
     AppSecurity.init ();
   }

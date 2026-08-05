@@ -262,6 +262,9 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
+v2.2.4 - work in progress
+* Updated to phive-rules 4.5.2
+
 v2.2.3 - 2026-08-05
 * Disabled the audit logging, as Phorm is a stateless validation service and does not need it.
   No more `audits` folder is created below the configured `webapp.datapath`

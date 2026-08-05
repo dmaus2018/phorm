@@ -262,8 +262,10 @@ As an alternative to using `private-application.properties` you may also conside
 
 # News and noteworthy
 
-v2.2.3 - work in progress
-* Disabled the audit logging, as Phorm is a stateless validation service and does not need it. No more `audits` folder is created below the configured `webapp.datapath`
+v2.2.3 - 2026-08-05
+* Disabled the audit logging, as Phorm is a stateless validation service and does not need it.
+  No more `audits` folder is created below the configured `webapp.datapath`
+* Updated to phive-rules 4.5.1
 
 v2.2.2 - 2026-08-03
 * Updated to phive-rules 4.5.0
@@ -284,8 +286,10 @@ v2.1.6 - 2026-07-09
 * Include existing phive-rules submodule `phive-rules-isdoc`, `phive-rules-osa` and `phive-rules-serbia`
 
 v2.1.5 - 2026-07-02
-* Added validation of Peppol SBDH envelope constraints in `/api/dd_and_validate`, returned as an additional first validation layer. See [#14](https://github.com/phax/phorm/issues/14) - thx @dmaus2018
-* Added a Peppol BIS Billing check in `/api/dd_and_validate` that the SBDH sender/receiver participant IDs match the payload sender/receiver IDs. See [#14](https://github.com/phax/phorm/issues/14) - thx @PontusPaulsson
+* Added validation of Peppol SBDH envelope constraints in `/api/dd_and_validate`, returned as an additional first validation layer.
+  See [#14](https://github.com/phax/phorm/issues/14) - thx @dmaus2018
+* Added a Peppol BIS Billing check in `/api/dd_and_validate` that the SBDH sender/receiver participant IDs match the payload sender/receiver IDs.
+  See [#14](https://github.com/phax/phorm/issues/14) - thx @PontusPaulsson
 
 v2.1.4 - 2026-07-01
 * Added OpenTelemetry support
@@ -316,7 +320,8 @@ v2.0.4 - 2026-05-09
 v2.0.3 - 2026-04-10
 * Updated to phive 12.0.3
 * Updated to ddd 0.8.5
-* Added support for automatic unwrapping of SBDH/XHE envelopes in `/dd_and_validate`. See [#11](https://github.com/phax/phorm/issues/11)
+* Added support for automatic unwrapping of SBDH/XHE envelopes in `/dd_and_validate`.
+  See [#11](https://github.com/phax/phorm/issues/11)
 
 v2.0.2 - 2026-04-02
 * Updated to phive 12.0.2 and phive-rules 4.3.0
@@ -336,7 +341,8 @@ v2.0.0 - 2026-03-18
 * The Maven artifact ID changed from `validation-service` to `phorm`, so the WAR file is now `phorm.war` instead of `validation-service.war`
 * The Java package was renamed from `com.helger.valsvc` to `com.helger.phorm`
 * The Docker image is now `phelger/phorm` (the old tag `phelger/valsvc` is still provided for backwards compatibility)
-* Configuration property keys were renamed from `valsvc.*` to `phorm.*` (e.g. `valsvc.api.requiredtoken` → `phorm.api.requiredtoken`). The old `valsvc.*` keys are still accepted as fallback values.
+* Configuration property keys were renamed from `valsvc.*` to `phorm.*` (e.g. `valsvc.api.requiredtoken` → `phorm.api.requiredtoken`).
+  The old `valsvc.*` keys are still accepted as fallback values.
 * The log prefix changed from `[VAL-SVC]` to `[PHORM]`
 * The default Docker data path changed from `/config/valsvc` to `/config/phorm`
 

@@ -28,13 +28,14 @@ import com.helger.base.debug.GlobalDebug;
 import com.helger.base.system.SystemProperties;
 import com.helger.datetime.helper.PDTFactory;
 import com.helger.datetime.web.PDTWebDateHelper;
+import com.helger.ddd.DDDVersion;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
 import com.helger.mime.CMimeType;
 import com.helger.mime.MimeType;
-import com.helger.servlet.response.UnifiedResponse;
 import com.helger.phorm.AppConfig;
 import com.helger.phorm.AppVersion;
+import com.helger.servlet.response.UnifiedResponse;
 import com.helger.web.scope.IRequestWebScopeWithoutResponse;
 import com.helger.xservlet.handler.simple.IXServletSimpleHandler;
 
@@ -59,6 +60,7 @@ public class StatusXServletHandler implements IXServletSimpleHandler
     aStatusData.add ("status.datetime", PDTWebDateHelper.getAsStringXSD (PDTFactory.getCurrentOffsetDateTimeUTC ()));
     aStatusData.add ("version.pp", AppVersion.getVersionNumber ());
     aStatusData.add ("version.java", SystemProperties.getJavaVersion ());
+    aStatusData.add ("version.dd", DDDVersion.getVersionNumber ());
     aStatusData.add ("global.debug", GlobalDebug.isDebugMode ());
     aStatusData.add ("global.production", GlobalDebug.isProductionMode ());
 

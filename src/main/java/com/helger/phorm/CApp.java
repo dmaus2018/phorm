@@ -26,7 +26,7 @@ public final class CApp
 {
   public static final Locale DEFAULT_LOCALE = Locale.UK;
 
-  public static final String APP_NAME = "Standalone Validation Service";
+  public static final String APP_NAME = "phorm - Business Document Validation Service";
 
   // User group IDs
   public static final String USERGROUPID_SUPERUSER = CSecurity.USERGROUP_ADMINISTRATORS_ID;

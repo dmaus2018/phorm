@@ -29,10 +29,9 @@ RUN unzip phorm.war -d /phorm \
   && rm /phorm/WEB-INF/classes/application.properties \
   && mv /phorm/WEB-INF/classes/application.docker.properties /phorm/WEB-INF/classes/application.properties
 
-
 # Stage 2
 
-FROM tomcat:10.1-jdk21
+FROM tomcat:10.1-jre25
 
 ENV CATALINS_OPTS="-Djava.security.egd=file:/dev/urandom"
 
